@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedClinic 360 - Início</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            background: #eef3f7;
+            color: #333;
+        }
+
+        /* NAVBAR */
+        nav {
+            background: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #555;
+            margin-left: 20px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #2c7be5;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 80px 60px;
+            background: linear-gradient(to right, #cfe2f3, #e6f0f7);
+        }
+
+        .hero h1 {
+            color: #1b4f72;
+            font-size: 38px;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            color: #5d7185;
+            max-width: 450px;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: #2c7be5;
+            color: white !important;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+            box-shadow: 0 4px 6px rgba(44, 123, 229, 0.2);
+        }
+
+        .btn:hover {
+            background: #1a5ab5;
+            transform: translateY(-2px);
+        }
+
+        .hero-box {
+            width: 220px;
+            height: 180px;
+            background: #2c7be5;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 60px;
+            box-shadow: 0 10px 20px rgba(44, 123, 229, 0.3);
+        }
+
+        /* CARDS */
+        .container {
+            padding: 50px 60px;
+        }
+
+        .cards {
+            display: flex;
+            gap: 25px;
+        }
+        
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+            flex: 1;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: 0.3s ease-in-out;
+            height: 100%;
+            box-sizing: border-box;
+            border: 1px solid transparent;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+            border-color: #2c7be5;
+        }
+
+        .card h2 {
+            color: #2c7be5;
+            margin-top: 0;
+            font-size: 1.4rem;
+        }
+
+        .card p {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div><strong style="font-size: 1.3rem; color: #1b4f72;">MedClinic 360</strong></div>
+    <div class="nav-links">
+        <a href="{% url 'home' %}">Início</a>
+        <a href="#">Doentes</a> <a href="{% url 'novo_doente' %}">Novo</a>
+    </div>
+</nav>
+
+<div class="hero">
+    <div>
+        <h1>Cuidado Personalizado,<br>Gestão Inteligente.</h1>
+        <p>Plataforma centralizada para gestão de doentes, consultas e exames com integração de base de dados segura.</p>
+        <a href="{% url 'novo_doente' %}" class="btn">+ Novo Doente</a>
+    </div>
+
+    <div class="hero-box">
+        +
+    </div>
+</div>
+
+<div class="container">
+    <div class="cards">
+
+        <a href="{% url 'lista_doentes' %}" class="card-link">
+    <div class="card">
+        <h2>🧑‍🤝‍🧑 Doentes</h2>
+        <p>Aceda ao registo completo e histórico de todos os doentes da clínica.</p>
+    </div>
+</a>
+
+        <a href="#" class="card-link">
+            <div class="card">
+                <h2>📅 Consultas</h2>
+                <p>Agendamento, gestão de horários e acompanhamento clínico em tempo real.</p>
+            </div>
+        </a>
+
+        <a href="#" class="card-link">
+            <div class="card">
+                <h2>📊 Sistema</h2>
+                <p>Configurações gerais, relatórios estatísticos e gestão de utilizadores.</p>
+            </div>
+        </a>
+
+    </div>
+</div>
+
+</body>
+</html>

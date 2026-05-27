@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedClinic 360 - Lista de Doentes</title>
+    <style>
+        :root {
+            --primary: #2c7be5;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --danger: #e11d48;
+            --success: #10b981;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text);
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 { color: var(--primary); margin: 0; font-size: 24px; }
+
+        .btn-back { 
+            text-decoration: none; 
+            color: #64748b; 
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-back:hover { color: var(--primary); }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            text-align: left;
+        }
+
+        th { 
+            background-color: var(--primary); 
+            color: white; 
+            padding: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+
+        td { 
+            padding: 15px; 
+            border-bottom: 1px solid #f1f5f9; 
+            font-size: 14px;
+        }
+
+        tr:hover { background-color: #f8fafc; }
+
+        /* Estilo dos Botões de Ação */
+        .btn-edit {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+
+        .btn-delete {
+            color: var(--danger);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .btn-edit:hover, .btn-delete:hover {
+            text-decoration: underline;
+        }
+
+        .empty-msg {
+            padding: 40px;
+            text-align: center;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-area">
+            <h1>🧑‍🤝‍🧑 Doentes Registados</h1>
+            <a href="{% url 'home' %}" class="btn-back">← Voltar ao Início</a>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Morada</th>
+                        <th>NIF</th>
+                        <th>Número SNS</th>
+                        <th>Data de Nasc.</th>
+                        <th style="text-align: center;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doente in lista %}
+                    <tr>
+                        <td><strong>{{ doente.1 }}</strong></td>
+                        <td>{{ doente.2 }}</td>
+                        <td>{{ doente.3 }}</td>
+                        <td>{{ doente.4 }}</td>
+                        <td>{{ doente.5 }}</td>
+                        <td style="text-align: center;">
+                            <a href="{% url 'editar_doente' doente.0 %}" class="btn-edit">✏️ Editar</a>
+                            
+                            <a href="{% url 'eliminar_doente' doente.0 %}" 
+                               class="btn-delete" 
+                               onclick="return confirm('Tem a certeza que deseja eliminar este doente?')">🗑️ Eliminar</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="empty-msg">
+                            Nenhum doente encontrado na base de dados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>
