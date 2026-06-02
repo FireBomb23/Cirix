@@ -32,7 +32,6 @@
   a { text-decoration: none; color: inherit; }
   button { cursor: pointer; font-family: inherit; border: none; outline: none; }
   input, textarea, select { font-family: inherit; outline: none; }
-
   /* UTILS */
   .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
   .hidden { display: none !important; }
@@ -91,7 +90,6 @@
   .opacity-20 { opacity: 0.2; }
   .transition { transition: all 0.2s; }
   .cursor-pointer { cursor: pointer; }
-
   /* NAV */
   nav { background: var(--slate-900); color: white; border-bottom: 1px solid var(--slate-800); }
   .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 4rem; }
@@ -109,8 +107,7 @@
   .nav-mobile a { display: block; padding: 0.625rem 1rem; border-radius: 0.375rem; color: var(--slate-300); font-size: 0.875rem; transition: all 0.2s; }
   .nav-mobile a:hover, .nav-mobile a.active { background: var(--slate-800); color: var(--yellow); }
   .nav-mobile-actions { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--slate-800); display: flex; flex-direction: column; gap: 0.5rem; padding-left: 1rem; padding-right: 1rem; }
-
-  /* BUTTONS */
+   /* BUTTONS */
   .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
   .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.8rem; }
   .btn-lg { padding: 0.75rem 1.5rem; font-size: 1rem; }
@@ -127,18 +124,15 @@
   .btn-danger { background: var(--red); color: white; }
   .btn-danger:hover { background: #B91C1C; }
   .btn-success { background: var(--green); color: white; }
-
   /* CARDS */
   .card { background: white; border: 1px solid var(--slate-200); border-radius: 0.75rem; transition: box-shadow 0.2s; }
   .card:hover { box-shadow: 0 10px 15px -3px rgba(0,0,0,.1); }
   .card-content { padding: 1.5rem; }
-
   /* INPUTS */
   .input { width: 100%; padding: 0.625rem 0.875rem; border: 1px solid var(--slate-300); border-radius: 0.5rem; font-size: 0.875rem; background: white; transition: border-color 0.2s; }
   .input:focus { border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(234,179,8,0.1); }
   .label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.375rem; color: var(--slate-700); }
   textarea.input { resize: vertical; min-height: 120px; }
-
   /* BADGE */
   .badge { display: inline-flex; align-items: center; padding: 0.2rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
   .badge-yellow { background: #FEF9C3; color: var(--yellow-dark); }
@@ -147,26 +141,22 @@
   .badge-blue { background: #DBEAFE; color: #1E40AF; }
   .badge-gray { background: var(--slate-100); color: var(--slate-600); }
   .badge-orange { background: #FFEDD5; color: #9A3412; }
-
   /* ALERT */
   .alert { padding: 0.875rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; display: flex; align-items: flex-start; gap: 0.625rem; }
   .alert-error { background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; }
   .alert-success { background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; }
   .alert-info { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1D4ED8; }
   .alert-warning { background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; }
-
   /* TOAST */
   #toast { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
   .toast-item { background: var(--slate-900); color: white; padding: 0.875rem 1.25rem; border-radius: 0.75rem; font-size: 0.875rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,.3); animation: slideIn 0.3s ease; border-left: 3px solid var(--yellow); max-width: 320px; }
   .toast-item.error { border-left-color: var(--red); }
   .toast-item.success { border-left-color: var(--green); }
   @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
   /* SECTIONS */
   .section { padding: 5rem 0; }
   .section-sm { padding: 3rem 0; }
   .section-bg { background: var(--slate-50); }
-
   /* HERO */
   .hero { position: relative; background: linear-gradient(135deg, var(--slate-900) 0%, var(--slate-800) 50%, var(--slate-900) 100%); color: white; padding: 5rem 0 6rem; }
   .hero-bg { position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1693314184947-af516631ff1d?w=1080&q=60') center/cover no-repeat; opacity: 0.15; }
@@ -179,32 +169,26 @@
   .hero-stat { display: flex; flex-direction: column; }
   .hero-stat-num { font-family: 'Syne',sans-serif; font-size: 2rem; font-weight: 800; color: var(--yellow); }
   .hero-stat-label { font-size: 0.875rem; color: var(--slate-400); }
-
   /* PAGE HERO */
   .page-hero { background: linear-gradient(135deg, var(--slate-900) 0%, var(--slate-800)); color: white; padding: 4rem 0; }
   .page-hero h1 { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.75rem; }
   .page-hero p { color: var(--slate-300); font-size: 1.1rem; max-width: 600px; }
-
   /* SERVICES GRID */
   .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
   .service-icon { width: 3rem; height: 3rem; background: #FEF9C3; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
   .service-icon svg { color: var(--yellow-dark); }
   .service-feature { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--slate-600); margin-bottom: 0.375rem; }
   .service-feature svg { color: var(--green); flex-shrink: 0; }
-
   /* WHY US */
   .why-item { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
   .why-icon { width: 2.5rem; height: 2.5rem; background: #FEF9C3; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-
   /* ARTICLES */
   .articles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
   .article-img { height: 12rem; background: linear-gradient(135deg, var(--yellow), #A16207); display: flex; align-items: center; justify-content: center; }
-
   /* CTA SECTION */
   .cta-section { background: linear-gradient(135deg, var(--yellow), #A16207); color: white; padding: 5rem 0; text-align: center; }
   .cta-section h2 { font-size: 2.5rem; margin-bottom: 1rem; }
   .cta-section p { color: #FEF9C3; font-size: 1.1rem; max-width: 600px; margin: 0 auto 2rem; }
-
   /* FOOTER */
   footer { background: var(--slate-900); color: var(--slate-300); padding: 3rem 0 1.5rem; }
   .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; }
@@ -214,8 +198,7 @@
   .footer-contact-item { display: flex; align-items: flex-start; gap: 0.625rem; font-size: 0.875rem; margin-bottom: 0.75rem; }
   .footer-contact-item svg { color: var(--yellow); flex-shrink: 0; margin-top: 2px; }
   .footer-bottom { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--slate-800); text-align: center; font-size: 0.875rem; color: var(--slate-500); }
-
-  /* LOGIN */
+   /* LOGIN */
   .login-page { min-height: 100vh; background: linear-gradient(135deg, var(--slate-900) 0%, var(--slate-800) 50%, var(--slate-900) 100%); display: flex; align-items: center; justify-content: center; padding: 2rem; }
   .login-box { width: 100%; max-width: 440px; }
   .login-logo { text-align: center; margin-bottom: 2rem; }
@@ -586,7 +569,7 @@ function renderNavbar() {
        <button class="btn btn-ghost w-full" onclick="logout();toggleMobileMenu()" style="color:var(--slate-600)">Sair</button>`
     : `<a href="#" onclick="navigate('login');toggleMobileMenu();return false"><button class="btn btn-primary w-full">Entrar</button></a>`;
 
-  return `
+    return `
   <nav>
     <div class="container">
       <div class="nav-inner">
@@ -621,7 +604,6 @@ function toggleMobileMenu() {
   if (i) i.innerHTML = open ? icn('menu') : icn('x');
 }
 
-// ============================================================
 // FOOTER
 // ============================================================
 function renderFooter() {
@@ -635,7 +617,7 @@ function renderFooter() {
             <span class="footer-heading" style="margin:0">Ciryx</span>
           </div>
           <p class="text-sm">Empresa líder em soluções de cibersegurança, protegendo o seu negócio contra ameaças digitais.</p>
-        </div>
+          </div>
         <div>
           <div class="footer-heading">Links Rápidos</div>
           <ul class="footer-links">
@@ -663,7 +645,6 @@ function renderFooter() {
   </footer>`;
 }
 
-// ============================================================
 // PAGES — PUBLIC
 // ============================================================
 function renderHome() {
@@ -677,7 +658,7 @@ function renderHome() {
       </div>
     </div>`).join('');
 
-  const articles = mockArticles.slice(0,3).map(a => `
+    const articles = mockArticles.slice(0,3).map(a => `
     <div class="card overflow-hidden">
       <div class="article-img"></div>
       <div class="card-content">
@@ -690,7 +671,7 @@ function renderHome() {
       </div>
     </div>`).join('');
 
-  return `
+     return `
   ${renderNavbar()}
   <div class="page">
     <!-- HERO -->
@@ -708,7 +689,7 @@ function renderHome() {
           <div class="hero-stat"><span class="hero-stat-num">15+</span><span class="hero-stat-label">Anos de Experiência</span></div>
           <div class="hero-stat"><span class="hero-stat-num">200+</span><span class="hero-stat-label">Clientes Satisfeitos</span></div>
           <div class="hero-stat"><span class="hero-stat-num">100%</span><span class="hero-stat-label">Conformidade NIS</span></div>
-        </div>
+          </div>
       </div>
     </section>
 
@@ -774,6 +755,7 @@ function renderAbout() {
     {name:'João Silva',role:'Gestor de Operações',init:'JS'},
     {name:'Maria Santos',role:'Consultora Sénior',init:'MS'},
   ];
+
   return `
   ${renderNavbar()}
   <div class="page">
@@ -792,6 +774,7 @@ function renderAbout() {
         </div>
       </div>
     </section>
+
     <section class="section section-bg">
       <div class="container">
         <div class="mvv-grid">
@@ -809,6 +792,7 @@ function renderAbout() {
         </div>
       </div>
     </section>
+
     <section class="cta-section">
       <h2>Junte-se aos nossos clientes</h2>
       <p>Mais de 200 organizações confiam na Ciryx para proteger os seus ativos digitais</p>
@@ -833,7 +817,7 @@ function renderServices() {
       </div>
     </div>`).join('');
 
-  return `
+    return `
   ${renderNavbar()}
   <div class="page">
     <section class="page-hero"><div class="container"><h1>Serviços</h1><p class="slate-400">Soluções completas em cibersegurança para proteger a sua organização</p></div></section>
@@ -853,6 +837,7 @@ function renderServices() {
         </div>
       </div>
     </section>
+
     <section class="section">
       <div class="container">
         <div class="cta-section" style="border-radius:1rem;padding:4rem 2rem">
@@ -881,7 +866,7 @@ function renderNews() {
       </div>
     </div>`).join('');
 
-  return `
+    return `
   ${renderNavbar()}
   <div class="page">
     <section class="page-hero"><div class="container"><h1>Notícias e Artigos</h1><p class="slate-400">Mantenha-se atualizado sobre as últimas tendências em cibersegurança</p></div></section>
@@ -904,7 +889,7 @@ function renderNews() {
       </div>
     </section>
   </div>
-  ${renderFooter()}`;
+${renderFooter()}`;
 }
 
 function renderContact() {
@@ -938,6 +923,7 @@ function renderContact() {
         </div>
       </div>
     </section>
+
     <section class="section section-bg">
       <div class="container">
         <div class="contact-map">
@@ -979,7 +965,7 @@ function renderLogin() {
             <div style="font-family:Syne,sans-serif;font-weight:700;font-size:1.25rem;color:white">Ciryx</div>
             <div style="font-size:.8rem;color:var(--slate-400)">Cybersecurity</div>
           </div>
-        </a>
+          </a>
       </div>
       <div class="login-card">
         <div class="login-card-header">
@@ -995,7 +981,7 @@ function renderLogin() {
             <div style="display:flex;gap:.75rem;margin-bottom:1rem">
               <button class="btn btn-outline-dark w-full" onclick="state.loginStep='credentials';render()">Voltar</button>
               <button class="btn btn-primary w-full" onclick="submit2FA()">Verificar e Entrar <span>${icn('login')}</span></button>
-            </div>
+              </div>
           ` : `
             <div class="form-group"><label class="label">Email</label><input class="input" id="lemail" type="email" placeholder="seu.email@exemplo.pt" value="${state.loginEmail}"></div>
             <div class="form-group"><label class="label">Password</label><input class="input" id="lpassword" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitLogin()"></div>
@@ -1068,6 +1054,7 @@ function renderSidebar(links, activeKey) {
         <span class="icon-sm">${icn(l.icon)}</span>${l.label}
       </a>`).join('')}
   `).join('');
+
   return `
   <div class="sidebar" id="sidebar">
     <div class="sidebar-logo">
@@ -1104,7 +1091,7 @@ function dashWrap(sidebar, title, content) {
       <div class="dash-content page">${content}</div>
     </main>
   </div>`;
-}
+}~
 
 function openSidebar() {
   document.getElementById('sidebar')?.classList.add('open');
@@ -1196,6 +1183,7 @@ function clientRequestsPage() {
         </div>
       </div>
     </div>
+
     <div style="display:flex;flex-direction:column;gap:1rem">
       ${reqs.map(r=>`
         <div class="card"><div class="card-content"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem">
@@ -1231,7 +1219,7 @@ function clientTicketsPage() {
           <div class="form-group form-row">
             <div><label class="label">Categoria</label><select class="input" id="tickCat"><option value="technical">Técnico</option><option value="billing">Faturação</option><option value="incident">Incidente</option><option value="general">Geral</option></select></div>
             <div><label class="label">Prioridade</label><select class="input" id="tickPrio"><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="urgent">Urgente</option></select></div>
-          </div>
+            </div>
           <div class="form-group"><label class="label">Descrição</label><textarea class="input" id="tickDesc" rows="4" placeholder="Descreva o problema em detalhe..."></textarea></div>
         </div>
         <div class="modal-footer">
@@ -1293,7 +1281,6 @@ function addTicketReply(ticketId) {
   }
 }
 
-// ============================================================
 // ADMIN DASHBOARD PAGES
 // ============================================================
 function adminLinks() {
@@ -1591,7 +1578,6 @@ function adminMessagesPage() {
     </div>`;
 }
 
-// ============================================================
 // RENDER
 // ============================================================
 function render() {
@@ -1622,3 +1608,4 @@ window.addEventListener('popstate', () => { render(); });
 </script>
 </body>
 </html>
+
