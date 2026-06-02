@@ -38,7 +38,7 @@
   .grid { display: grid; gap: 1.5rem; }
   .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
   .grid-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-  .text-center { text-center: center; }
+  .text-center { text-align: center; }
   
   /* HEADER */
   .header { background-color: rgba(15, 23, 42, 0.8); border-bottom: 1px solid var(--slate-800); position: sticky; top: 0; backdrop-filter: blur(8px); z-index: 100; padding: 1rem 0; }
@@ -168,13 +168,7 @@
     // ============================================================
     // INJEÇÃO DE DADOS DINÂMICOS DO DJANGO (FICHA 9)
     // ============================================================
-    const dbData = {
-      conformidade: {% if dashboard_nis2 %}{{ dashboard_nis2|safe }}{% else %}[]{% endif %},
-      incidentes: {% if dashboard_top5 %}{{ dashboard_top5|safe }}{% else %}[]{% endif %},
-      documentos: {% if dashboard_docs %}{{ dashboard_docs|safe }}{% else %}[]{% endif %},
-      perfis:  {% if dashboard_perfis %}{{ dashboard_perfis|safe }}{% else %}[]{% endif %},
-      tickets:  {% if dashboard_tickets %}{{ dashboard_tickets|safe }}{% else %}[]{% endif %}
-    };
+
 
     // ESTADO DA APLICAÇÃO SPA
     const state = {
