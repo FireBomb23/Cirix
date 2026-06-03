@@ -1,0 +1,124 @@
+:root {
+  --yellow: #EAB308;
+  --yellow-dark: #A16207;
+  --slate-900: #0F172A;
+  --slate-800: #1E293B;
+  --slate-700: #334155;
+  --slate-500: #64748B;
+  --slate-400: #94A3B8;
+  --slate-200: #E2E8F0;
+  --slate-100: #F1F5F9;
+  --slate-50: #F8FAFC;
+  --green: #16A34A;
+  --red: #DC2626;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  color: var(--slate-800);
+  background: var(--slate-50);
+  line-height: 1.6;
+}
+h1, h2, h3 { font-family: 'Syne', sans-serif; line-height: 1.2; }
+a { text-decoration: none; color: inherit; }
+code { background: var(--slate-100); padding: 0 .3rem; border-radius: 4px; font-size: .9em; }
+
+.container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.text-center { text-align: center; }
+.muted { color: var(--slate-500); }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+
+/* Topbar */
+.topbar {
+  background: var(--slate-900);
+  color: #fff;
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.brand {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.brand-mark {
+  background: var(--yellow);
+  color: var(--slate-900);
+  width: 30px; height: 30px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+}
+.nav { display: flex; gap: .5rem; }
+.nav-link {
+  padding: .4rem .8rem;
+  border-radius: 6px;
+  color: var(--slate-200);
+  font-weight: 500;
+}
+.nav-link:hover { background: var(--slate-800); }
+.nav-link.active { background: var(--yellow); color: var(--slate-900); }
+
+.main { padding: 2rem 1.5rem; min-height: 70vh; }
+.page-title { font-size: 1.8rem; font-weight: 800; }
+
+/* Cards (home) */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+.card {
+  background: #fff;
+  border: 1px solid var(--slate-200);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: .15s;
+}
+.card:hover { border-color: var(--yellow); transform: translateY(-2px); }
+.card h3 { margin-bottom: .25rem; }
+
+/* Tabela */
+.table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+.table th, .table td { padding: .75rem 1rem; text-align: left; border-bottom: 1px solid var(--slate-100); }
+.table th { background: var(--slate-100); font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; color: var(--slate-500); }
+.table tr:last-child td { border-bottom: none; }
+.acoes-col { text-align: right; }
+.acoes { display: flex; gap: .5rem; justify-content: flex-end; }
+
+/* Botoes */
+.btn {
+  background: var(--slate-200);
+  color: var(--slate-800);
+  padding: .5rem .9rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: .9rem;
+  display: inline-block;
+}
+.btn:hover { filter: brightness(.97); }
+.btn-sm { padding: .35rem .7rem; font-size: .82rem; }
+.btn-primary { background: var(--yellow); color: var(--slate-900); }
+.btn-danger { background: var(--red); color: #fff; }
+
+/* Formulario */
+.form-wrap { max-width: 560px; }
+.form { background: #fff; border: 1px solid var(--slate-200); border-radius: 12px; padding: 1.5rem; }
+.form-row { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 1rem; }
+.form-row label { font-weight: 600; font-size: .9rem; }
+.req { color: var(--red); margin-left: .2rem; }
+.form input, .form select {
+  padding: .6rem .75rem;
+  border: 1px solid var(--slate-200);
+  border-radius: 8px;
+  font-size: .95rem;
+}
+.form input:focus, .form select:focus { border-color: var(--yellow); }
+.form-actions { display: flex; justify-content: flex-end; gap: .75rem; margin-top: .5rem; }
+
+.erro { background: #FEE2E2; color: var(--red); padding: .75rem 1rem; border-radius: 8px; margin-bottom: 1rem; }
+.footer { padding: 2rem 1.5rem; color: var(--slate-400); font-size: .85rem; }

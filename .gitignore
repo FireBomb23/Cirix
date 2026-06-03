@@ -1,0 +1,22 @@
+# Dependencias Node
+node_modules/
+src/node_modules/
+frontend/node_modules/
+
+# Build do frontend
+frontend/dist/
+
+# Variaveis de ambiente (contem credenciais da BD)
+.env
+src/.env
+frontend/.env
+
+# Python / Django (outra cadeira)
+__pycache__/
+*.pyc
+*.sqlite3
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+.vscode/
