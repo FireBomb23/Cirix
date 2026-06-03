@@ -1,50 +1,52 @@
-from django.shortcuts import render
-from django.http import JsonResponse
-import json
-from . import basedados
+from django.shortcuts import render, redirect
+from .basedados import (
+    obter_clientes_por_conformidade,
+    obter_top5_clientes_incidentes,
+    obter_documentos_por_cliente_mes,
+    obter_distribuicao_perfil_utilizadores,
+    obter_estado_e_tempo_medio_tickets,
+    obter_todos_clientes,  # Nova importação
+    inserir_cliente,
+    obter_cliente_por_id,
+    atualizar_cliente,
+    eliminar_cliente_db
+)
 
-def home(request):
-    # 1. Tratamento de submissões assíncronas do Frontend (Post)
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            action = data.get('action')
-            
-            if action == 'contacto':
-                sucesso = basedados.inserir_contacto(
-                    data.get('name'), data.get('email'), data.get('message')
-                )
-                return JsonResponse({'status': 'success' if sucesso else 'error'})
-                
-            elif action == 'login':
-                user = basedados.validar_login(data.get('email'), data.get('password'))
-                if user:
-                    return JsonResponse({'status': 'success', 'user': user})
-                return JsonResponse({'status': 'error', 'message': 'Credenciais inválidas.'})
-                # --- PROCESSAMENTO DO CRUD NO VIEWS.PY ---
-            
-            elif action == 'criar_utilizador':
-                sucesso = basedados.criar_utilizador(data.get('nome'), data.get('email'), data.get('password'), data.get('perfil'))
-                return JsonResponse({'status': 'success' if sucesso else 'error'})
-
-            elif action == 'atualizar_utilizador':
-                sucesso = basedados.atualizar_utilizador(data.get('id'), data.get('nome'), data.get('email'), data.get('perfil'))
-                return JsonResponse({'status': 'success' if sucesso else 'error'})
-
-            elif action == 'eliminar_utilizador':
-                sucesso = basedados.eliminar_utilizador(data.get('id'))
-                return JsonResponse({'status': 'success' if sucesso else 'error'})
-                
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)})
-
-    # 2. Carregamento da Página com as métricas exigidas pela FICHA 9
-    contexto = {
-        'dashboard_nis2': basedados.obter_conformidade_nis2(),         # Exercício 1
-        'dashboard_top5': basedados.obter_top5_incidentes(),          # Exercício 2
-        'dashboard_docs': basedados.obter_documentos_por_mes(),        # Exercício 3
-        'dashboard_perfis': basedados.obter_distribuicao_perfis(),     # Exercício 4
-        'dashboard_tickets': basedados.obter_estado_tickets_resolucao(),# Exercício 5
+# 1. Vista do Dashboard Avançado
+def dashboard_view(request):
+    context = {
+        'lista_clientes': obter_todos_clientes(),  # Passa os clientes reais para o CRUD
+        'dados_conformidade': obter_clientes_por_conformidade(),
+        'top5_incidentes': obter_top5_clientes_incidentes(),
+        'documentos_mes': obter_documentos_por_cliente_mes(),
+        'perfis_utilizadores': obter_distribuicao_perfil_utilizadores(),
+        'tickets_suporte': obter_estado_e_tempo_medio_tickets(),
     }
+    return render(request, 'dashboard.html', context)
+
+# 2. Criar Cliente
+def criar_cliente_view(request):
+    if request.method == 'POST':
+        nome = request.POST.get('nome')
+        email = request.POST.get('email')
+        company = request.POST.get('company')
+        inserir_cliente(nome, email, 'client123', company)
+        return redirect('dashboard')
+    return render(request, 'form_cliente.html', {'acao': 'Criar'})
+
+# 3. Editar Cliente
+def editar_cliente_view(request, id_cliente):
+    if request.method == 'POST':
+        nome = request.POST.get('nome')
+        email = request.POST.get('email')
+        company = request.POST.get('company')
+        atualizar_cliente(id_cliente, nome, email, company)
+        return redirect('dashboard')
     
-    return render(request, 'portal/ciryx.html', contexto)
+    cliente_dados = obter_cliente_por_id(id_cliente)
+    return render(request, 'form_cliente.html', {'acao': 'Editar', 'cliente': cliente_dados})
+
+# 4. Eliminar Cliente
+def eliminar_cliente_view(request, id_cliente):
+    eliminar_cliente_db(id_cliente)
+    return redirect('dashboard')

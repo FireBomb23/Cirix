@@ -1,233 +1,130 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
+from django.db import connection
 
-def obter_conexao():
-    """Estabelece a ligação direta com a base de dados PostgreSQL do pgAdmin"""
-    return psycopg2.connect(
-        dbname="projeto_BD",
-        user="postgres",
-        password="BDCatarina6",
-        host="localhost",
-        port="5432"
-    )
+# ============================================================
+# OPERAÇÕES CRUD DE CLIENTES CONFIGURADAS PARA A TABELA "users"
+# (Fichas 7 e 8)
+# ============================================================
 
-def executar_consulta(query, params=None):
-    """Executa consultas SELECT e mapeia os resultados para dicionários"""
-    conn = obter_conexao()
-    cursor = conn.cursor(cursor_factory=RealDictCursor)
-    try:
-        cursor.execute(query, params)
+# 1. Função para Ler TODOS os clientes (Essencial para listar na tabela com botões funcionais)
+def obter_todos_clientes():
+    with connection.cursor() as cursor:
+        query = """
+            SELECT id, name, email, company, active
+            FROM users
+            WHERE role = 'client'
+            ORDER BY id ASC;
+        """
+        cursor.execute(query)
         return cursor.fetchall()
-    except Exception as e:
-        print(f"Erro ao executar consulta SQL: {e}")
-        return []
-    finally:
-        cursor.close()
-        conn.close()
 
-# ==============================================================================
-# REQUISITOS OBRIGATÓRIOS DA FICHA 9 (Métricas do Dashboard)
-# ==============================================================================
+# 2. Função para Criar (INSERT) um cliente na tabela users
+def inserir_cliente(nome, email, password_hash, company):
+    with connection.cursor() as cursor:
+        query = """
+            INSERT INTO users (name, email, password_hash, role, company, active, created_at, updated_at) 
+            VALUES (%s, %s, %s, 'client', %s, TRUE, NOW(), NOW());
+        """
+        cursor.execute(query, [nome, email, password_hash, company])
 
-def obter_conformidade_nis2():
-    """Ex 1: Número de clientes por estado de conformidade NIS2"""
-    # Ajusta os nomes das colunas/tabelas conforme a tua base de dados real
-    query = """
-        SELECT estado_nis2, COUNT(*) as total 
-        FROM clientes 
-        GROUP BY estado_nis2;
-    """
-    return executar_consulta(query)
-
-def obter_top5_incidentes():
-    """Ex 2: Top 5 clientes com mais incidentes de segurança registados"""
-    query = """
-        SELECT c.nome, COUNT(i.id) as total_incidentes
-        FROM clientes c
-        JOIN incidentes i ON c.id = i.cliente_id
-        GROUP BY c.id, c.nome
-        ORDER BY total_incidentes DESC
-        LIMIT 5;
-    """
-    return executar_consulta(query)
-
-def obter_documentos_por_mes():
-    """Ex 3: Total de documentos submetidos por cliente e por mês"""
-    query = """
-        SELECT c.nome as cliente, 
-               TO_CHAR(d.data_submissao, 'YYYY-MM') as mes, 
-               COUNT(d.id) as total_documentos
-        FROM clientes c
-        JOIN documentos d ON c.id = d.cliente_id
-        GROUP BY c.nome, mes
-        ORDER BY mes DESC, total_documentos DESC;
-    """
-    return executar_consulta(query)
-
-def obter_distribuicao_perfis():
-    """Ex 4: Distribuição de utilizadores por perfil (Administrador, Colaborador, Cliente)"""
-    query = """
-        SELECT perfil, COUNT(*) as total 
-        FROM utilizadores 
-        GROUP BY perfil;
-    """
-    return executar_consulta(query)
-
-def obter_estado_tickets_resolucao():
-    """Ex 5: Estado dos pedidos/tickets de suporte e tempo médio de resolução"""
-    query = """
-        SELECT estado, 
-               COUNT(*) as total_tickets,
-               AVG(data_resolucao - data_criacao) as tempo_medio_resolucao
-        FROM tickets
-        GROUP BY estado;
-    """
-    return executar_consulta(query)
-
-# ==============================================================================
-# AUTENTICAÇÃO E ENVIO DE FORMULÁRIOS
-# ==============================================================================
-
-def inserir_contacto(nome, email, mensagem):
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "INSERT INTO contact_submissions (name, email, message) VALUES (%s, %s, %s);",
-            (nome, email, mensagem)
-        )
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao gravar contacto: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
-
-def validar_login(email, password):
-    conn = obter_conexao()
-    cursor = conn.cursor(cursor_factory=RealDictCursor)
-    try:
-        cursor.execute(
-            "SELECT id, nome, email, perfil FROM utilizadores WHERE email = %s AND password = %s;",
-            (email, password)
-        )
+# 3. Função para Ler apenas um cliente por ID (Usado para carregar o formulário de Edição)
+def obter_cliente_por_id(id_cliente):
+    with connection.cursor() as cursor:
+        query = """
+            SELECT id, name, email, company 
+            FROM users 
+            WHERE id = %s AND role = 'client';
+        """
+        cursor.execute(query, [id_cliente])
         return cursor.fetchone()
-    except Exception as e:
-        print(f"Erro na autenticação: {e}")
-        return None
-    finally:
-        cursor.close()
-        conn.close()
 
-        # ==============================================================================
-# OPERAÇÕES DE CRUD EM FALTA (Exigidas pela Ficha 7, Ponto 5)
-# ==============================================================================
+# 4. Função para Atualizar (UPDATE) os dados de um cliente
+def atualizar_cliente(id_cliente, nome, email, company):
+    with connection.cursor() as cursor:
+        query = """
+            UPDATE users 
+            SET name = %s, email = %s, company = %s, updated_at = NOW() 
+            WHERE id = %s AND role = 'client';
+        """
+        cursor.execute(query, [nome, email, company, id_cliente])
 
-# --- CRUD: UTILIZADORES ---
-
-def criar_utilizador(nome, email, password, perfil):
-    """CREATE: Insere um novo utilizador no sistema"""
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "INSERT INTO utilizadores (nome, email, password, perfil) VALUES (%s, %s, %s, %s);",
-            (nome, email, password, perfil)
-        )
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao criar utilizador: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
-
-def atualizar_utilizador(id_utilizador, nome, email, perfil):
-    """UPDATE: Atualiza os dados de um utilizador existente"""
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "UPDATE utilizadores SET nome = %s, email = %s, perfil = %s WHERE id = %s;",
-            (nome, email, perfil, id_utilizador)
-        )
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao atualizar utilizador: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
-
-def eliminar_utilizador(id_utilizador):
-    """DELETE: Remove um utilizador do PostgreSQL"""
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("DELETE FROM utilizadores WHERE id = %s;", (id_utilizador,))
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao eliminar utilizador: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
+# 5. Função para Eliminar (DELETE) um cliente
+def eliminar_cliente_db(id_cliente):
+    with connection.cursor() as cursor:
+        query = """
+            DELETE FROM users 
+            WHERE id = %s AND role = 'client';
+        """
+        cursor.execute(query, [id_cliente])
 
 
-# --- CRUD: CLIENTES ---
+# ============================================================
+# QUERIES METRICAS DO DASHBOARD AVANÇADO (Ficha 9)
+# ============================================================
 
-def criar_cliente(nome, estado_nis2):
-    """CREATE: Insere um novo cliente"""
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "INSERT INTO clientes (nome, estado_nis2) VALUES (%s, %s);",
-            (nome, estado_nis2)
-        )
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao criar cliente: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
+# 1. Número de contratos por estado de conformidade/progresso NIS2
+def obter_clientes_por_conformidade():
+    with connection.cursor() as cursor:
+        query = """
+            SELECT status, COUNT(id) as total
+            FROM annual_services
+            WHERE service_type = 'nis-compliance'
+            GROUP BY status;
+        """
+        cursor.execute(query)
+        return cursor.fetchall()
 
-def atualizar_cliente(id_cliente, nome, estado_nis2):
-    """UPDATE: Altera o estado NIS2 ou o nome do cliente"""
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "UPDATE clientes SET nome = %s, estado_nis2 = %s WHERE id = %s;",
-            (nome, estado_nis2, id_cliente)
-        )
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao atualizar cliente: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
+# 2. Top 5 utilizadores/clientes com mais tickets de incidentes de segurança registados
+def obter_top5_clientes_incidentes():
+    with connection.cursor() as cursor:
+        query = """
+            SELECT u.name, COUNT(t.id) as total_incidentes
+            FROM users u
+            JOIN tickets t ON u.id = t.client_id
+            WHERE t.category = 'incident'
+            GROUP BY u.id, u.name
+            ORDER BY total_incidentes DESC
+            LIMIT 5;
+        """
+        cursor.execute(query)
+        return cursor.fetchall()
 
-def eliminar_cliente(id_cliente):
-    """DELETE: Apaga um cliente da base de dados"""
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("DELETE FROM clientes WHERE id = %s;", (id_cliente,))
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao eliminar cliente: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
+# 3. Total de documentos submetidos por cliente e por mês
+def obter_documentos_por_cliente_mes():
+    with connection.cursor() as cursor:
+        query = """
+            SELECT COALESCE(u.name, 'Global/Público') as nome_cliente, 
+                   EXTRACT(MONTH FROM d.upload_date) as mes,
+                   EXTRACT(YEAR FROM d.upload_date) as ano,
+                   COUNT(d.id) as total_documentos
+            FROM documents d
+            LEFT JOIN users u ON u.id = d.client_id
+            GROUP BY u.id, u.name, ano, mes
+            ORDER BY nome_cliente, ano, mes;
+        """
+        cursor.execute(query)
+        return cursor.fetchall()
+
+# 4. Distribuição de utilizadores por perfil (role)
+def obter_distribuicao_perfil_utilizadores():
+    with connection.cursor() as cursor:
+        query = """
+            SELECT role, COUNT(id) as total
+            FROM users
+            WHERE role IN ('admin', 'manager', 'client')
+            GROUP BY role;
+        """
+        cursor.execute(query)
+        return cursor.fetchall()
+
+# 5. Estado dos tickets de suporte e tempo médio de resolução
+def obter_estado_e_tempo_medio_tickets():
+    with connection.cursor() as cursor:
+        query = """
+            SELECT status, 
+                   COUNT(id) as total_tickets,
+                   AVG(EXTRACT(DAY FROM (updated_at - created_at))) as tempo_medio_dias
+            FROM tickets
+            GROUP BY status;
+        """
+        cursor.execute(query)
+        return cursor.fetchall()
