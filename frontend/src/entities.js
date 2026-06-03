@@ -1,62 +1,34 @@
-// Descricao declarativa de cada entidade. As paginas de listagem e de
-// formulario sao genericas e leem esta configuracao, evitando repetir codigo.
+// Descricao declarativa de cada entidade (alinhada a database/schema.sql).
+// As paginas de listagem e de formulario sao genericas e leem esta config.
 //
-// Tipos de campo suportados no formulario:
-//   text | email | password | number | date | datetime-local | select | ref
+// Tipos de campo: text | textarea | email | password | number | date |
+//                 datetime-local | select | boolean | ref
 //   - select: usa "options" (lista fixa)
-//   - ref: carrega opcoes a partir de outro endpoint (refEndpoint/refLabel)
+//   - boolean: checkbox (true/false)
+//   - ref: carrega opcoes de outro endpoint (refEndpoint/refLabel)
+
+const nomeUtilizador = (u) => (u ? `${u.name}` : '-');
 
 export const entities = {
-  utilizadores: {
+  users: {
     label: 'Utilizadores',
     singular: 'Utilizador',
-    endpoint: '/utilizadores',
+    endpoint: '/users',
     columns: [
       { key: 'id', label: 'ID' },
-      { key: 'nome', label: 'Nome' },
+      { key: 'name', label: 'Nome' },
       { key: 'email', label: 'Email' },
-      { key: 'perfil', label: 'Perfil' },
+      { key: 'role', label: 'Perfil' },
+      { key: 'company', label: 'Empresa' },
+      { key: 'active', label: 'Ativo', render: (r) => (r.active ? 'Sim' : 'Nao') },
     ],
     fields: [
-      { name: 'nome', label: 'Nome', type: 'text', required: true },
+      { name: 'name', label: 'Nome', type: 'text', required: true },
       { name: 'email', label: 'Email', type: 'email', required: true },
-      { name: 'password', label: 'Password', type: 'password', required: true },
-      { name: 'perfil', label: 'Perfil', type: 'select', options: ['Administrador', 'Colaborador', 'Cliente'] },
-    ],
-  },
-
-  clientes: {
-    label: 'Clientes',
-    singular: 'Cliente',
-    endpoint: '/clientes',
-    columns: [
-      { key: 'id', label: 'ID' },
-      { key: 'nome', label: 'Nome' },
-      { key: 'estado_nis2', label: 'Estado NIS2' },
-    ],
-    fields: [
-      { name: 'nome', label: 'Nome', type: 'text', required: true },
-      { name: 'estado_nis2', label: 'Estado NIS2', type: 'select', options: ['Conforme', 'Nao Conforme', 'Em Avaliacao'] },
-    ],
-  },
-
-  incidentes: {
-    label: 'Incidentes',
-    singular: 'Incidente',
-    endpoint: '/incidentes',
-    columns: [
-      { key: 'id', label: 'ID' },
-      { key: 'cliente', label: 'Cliente', render: (row) => (row.cliente ? row.cliente.nome : row.cliente_id) },
-      { key: 'severidade', label: 'Severidade' },
-      { key: 'estado', label: 'Estado' },
-      { key: 'descricao', label: 'Descricao' },
-    ],
-    fields: [
-      { name: 'cliente_id', label: 'Cliente', type: 'ref', required: true, refEndpoint: '/clientes', refLabel: 'nome' },
-      { name: 'descricao', label: 'Descricao', type: 'text' },
-      { name: 'severidade', label: 'Severidade', type: 'select', options: ['Baixa', 'Media', 'Alta', 'Critica'] },
-      { name: 'estado', label: 'Estado', type: 'select', options: ['Aberto', 'Em Investigacao', 'Resolvido'] },
-      { name: 'data_ocorrencia', label: 'Data de ocorrencia', type: 'datetime-local' },
+      { name: 'password_hash', label: 'Password', type: 'password', required: true, hint: 'Em edicao, deixa vazio para manter a atual' },
+      { name: 'role', label: 'Perfil', type: 'select', required: true, options: ['admin', 'manager', 'client'] },
+      { name: 'company', label: 'Empresa (so clientes)', type: 'text' },
+      { name: 'active', label: 'Ativo', type: 'boolean' },
     ],
   },
 
@@ -66,16 +38,64 @@ export const entities = {
     endpoint: '/tickets',
     columns: [
       { key: 'id', label: 'ID' },
-      { key: 'assunto', label: 'Assunto' },
-      { key: 'estado', label: 'Estado' },
-      { key: 'data_criacao', label: 'Criado em' },
-      { key: 'data_resolucao', label: 'Resolvido em' },
+      { key: 'title', label: 'Titulo' },
+      { key: 'cliente', label: 'Cliente', render: (r) => nomeUtilizador(r.cliente) },
+      { key: 'category', label: 'Categoria' },
+      { key: 'priority', label: 'Prioridade' },
+      { key: 'status', label: 'Estado' },
     ],
     fields: [
-      { name: 'assunto', label: 'Assunto', type: 'text', required: true },
-      { name: 'estado', label: 'Estado', type: 'select', options: ['Aberto', 'Em Curso', 'Resolvido', 'Fechado'] },
-      { name: 'data_criacao', label: 'Data de criacao', type: 'datetime-local' },
-      { name: 'data_resolucao', label: 'Data de resolucao', type: 'datetime-local' },
+      { name: 'title', label: 'Titulo', type: 'text', required: true },
+      { name: 'description', label: 'Descricao', type: 'textarea' },
+      { name: 'client_id', label: 'Cliente', type: 'ref', required: true, refEndpoint: '/users', refLabel: 'name' },
+      { name: 'category', label: 'Categoria', type: 'select', required: true, options: ['technical', 'general', 'incident', 'billing', 'other'] },
+      { name: 'priority', label: 'Prioridade', type: 'select', options: ['low', 'medium', 'high', 'urgent'] },
+      { name: 'status', label: 'Estado', type: 'select', options: ['open', 'in-progress', 'resolved', 'closed'] },
+      { name: 'assigned_to', label: 'Atribuido a', type: 'ref', refEndpoint: '/users', refLabel: 'name' },
+    ],
+  },
+
+  documents: {
+    label: 'Documentos',
+    singular: 'Documento',
+    endpoint: '/documents',
+    columns: [
+      { key: 'id', label: 'ID' },
+      { key: 'name', label: 'Nome' },
+      { key: 'file_type', label: 'Tipo' },
+      { key: 'category', label: 'Categoria' },
+      { key: 'visibility', label: 'Visibilidade' },
+      { key: 'cliente', label: 'Cliente', render: (r) => nomeUtilizador(r.cliente) },
+    ],
+    fields: [
+      { name: 'name', label: 'Nome', type: 'text', required: true },
+      { name: 'file_type', label: 'Tipo de ficheiro', type: 'select', options: ['PDF', 'XLSX', 'DOCX', 'PNG', 'ZIP'] },
+      { name: 'file_size', label: 'Tamanho', type: 'text' },
+      { name: 'category', label: 'Categoria', type: 'text' },
+      { name: 'visibility', label: 'Visibilidade', type: 'select', options: ['client', 'global'] },
+      { name: 'client_id', label: 'Cliente', type: 'ref', refEndpoint: '/users', refLabel: 'name' },
+      { name: 'uploaded_by', label: 'Submetido por', type: 'ref', refEndpoint: '/users', refLabel: 'name' },
+    ],
+  },
+
+  'service-requests': {
+    label: 'Pedidos',
+    singular: 'Pedido',
+    endpoint: '/service-requests',
+    columns: [
+      { key: 'id', label: 'ID' },
+      { key: 'title', label: 'Titulo' },
+      { key: 'cliente', label: 'Cliente', render: (r) => nomeUtilizador(r.cliente) },
+      { key: 'status', label: 'Estado' },
+      { key: 'request_date', label: 'Data do pedido' },
+    ],
+    fields: [
+      { name: 'title', label: 'Titulo', type: 'text', required: true },
+      { name: 'description', label: 'Descricao', type: 'textarea' },
+      { name: 'client_id', label: 'Cliente', type: 'ref', required: true, refEndpoint: '/users', refLabel: 'name' },
+      { name: 'status', label: 'Estado', type: 'select', options: ['pending', 'in-progress', 'completed', 'cancelled'] },
+      { name: 'assigned_to', label: 'Atribuido a', type: 'ref', refEndpoint: '/users', refLabel: 'name' },
+      { name: 'request_date', label: 'Data do pedido', type: 'date' },
     ],
   },
 };

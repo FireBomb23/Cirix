@@ -3,10 +3,10 @@ const express = require('express');
 const cors = require('cors');
 const { sequelize } = require('./models');
 
-const utilizadorRoutes = require('./routes/utilizadorRoutes');
-const clienteRoutes = require('./routes/clienteRoutes');
-const incidenteRoutes = require('./routes/incidenteRoutes');
+const userRoutes = require('./routes/userRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
+const documentRoutes = require('./routes/documentRoutes');
+const serviceRequestRoutes = require('./routes/serviceRequestRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,15 +20,15 @@ app.get('/', (req, res) => {
   res.json({
     api: 'Cirix API',
     estado: 'online',
-    recursos: ['/utilizadores', '/clientes', '/incidentes', '/tickets'],
+    recursos: ['/users', '/tickets', '/documents', '/service-requests'],
   });
 });
 
 // Rotas (MVC)
-app.use('/utilizadores', utilizadorRoutes);
-app.use('/clientes', clienteRoutes);
-app.use('/incidentes', incidenteRoutes);
+app.use('/users', userRoutes);
 app.use('/tickets', ticketRoutes);
+app.use('/documents', documentRoutes);
+app.use('/service-requests', serviceRequestRoutes);
 
 // Arranque do servidor (apos testar a ligacao a BD)
 async function start() {

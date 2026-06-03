@@ -18,16 +18,24 @@ As duas aplicações ligam-se ao **mesmo** servidor PostgreSQL, pelo que os dado
 
 A estrutura das tabelas está versionada no git em [database/schema.sql](database/schema.sql) — é a **fonte oficial** partilhada entre os dois projetos. Assim, qualquer pessoa que faça `clone` consegue recriar a base `projeto_BD` exatamente igual.
 
+A forma mais simples (sem pgAdmin) é o script do backend, que cria a base e aplica o esquema de uma vez:
+
+```bash
+cd src
+npm run setup-db
+```
+
+Em alternativa, manualmente:
+
 ```bash
 # 1) criar a base de dados (uma vez)
 createdb -U postgres projeto_BD          # ou: CREATE DATABASE "projeto_BD"; no pgAdmin
 
-# 2) aplicar o esquema
+# 2) aplicar o esquema (tabelas + dados de exemplo)
 psql -U postgres -d projeto_BD -f database/schema.sql
-
-# 3) (opcional) dados de exemplo
-psql -U postgres -d projeto_BD -f database/seed.sql
 ```
+
+Passo a passo detalhado no pgAdmin: [database/TUTORIAL_pgAdmin.md](database/TUTORIAL_pgAdmin.md).
 
 > **Nota:** o git transfere ficheiros (código + `schema.sql`), **não** os dados que estão dentro do PostgreSQL. Para os dados serem "os mesmos", todos correm o `schema.sql` na sua própria instância (ou ligam-se a uma instância partilhada).
 
@@ -39,19 +47,19 @@ psql -U postgres -d projeto_BD -f database/seed.sql
 
 Padrão **MVC**: `models/` (Sequelize), `controllers/` (lógica CRUD), `routes/` (rotas Express).
 
-Entidades com CRUD completo: **Utilizadores, Clientes, Incidentes, Tickets**.
+Entidades com CRUD completo (tabelas reais do `schema.sql`): **users, tickets, documents, service_requests**.
 
-### Rotas (por entidade, ex: `utilizadores`)
+### Rotas (por entidade, ex: `users`)
 
-| Método | URI                              | Função no controlador   |
-|--------|----------------------------------|-------------------------|
-| GET    | `/utilizadores`                  | `utilizador_list`       |
-| GET    | `/utilizadores/:id`              | `utilizador_detail`     |
-| POST   | `/utilizadores/create`           | `utilizador_create`     |
-| PUT    | `/utilizadores/update/:id`       | `utilizador_update`     |
-| DELETE | `/utilizadores/delete/:id`       | `utilizador_delete`     |
+| Método | URI                        | Função no controlador |
+|--------|----------------------------|-----------------------|
+| GET    | `/users`                   | `user_list`           |
+| GET    | `/users/:id`               | `user_detail`         |
+| POST   | `/users/create`            | `user_create`         |
+| PUT    | `/users/update/:id`        | `user_update`         |
+| DELETE | `/users/delete/:id`        | `user_delete`         |
 
-(O mesmo padrão aplica-se a `/clientes`, `/incidentes` e `/tickets`.)
+(O mesmo padrão aplica-se a `/tickets`, `/documents` e `/service-requests`.)
 
 ### Como correr
 

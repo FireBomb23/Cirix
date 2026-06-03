@@ -11,6 +11,9 @@ frontend/dist/
 src/.env
 frontend/.env
 
+# Script local de reposicao de password (contem credencial; especifico da maquina)
+database/repor_password.ps1
+
 # Python / Django (outra cadeira)
 __pycache__/
 *.pyc
