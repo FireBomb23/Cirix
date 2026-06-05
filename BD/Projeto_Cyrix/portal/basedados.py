@@ -1,11 +1,9 @@
 from django.db import connection
 
 # ============================================================
-# OPERAÇÕES CRUD DE CLIENTES CONFIGURADAS PARA A TABELA "users"
-# (Fichas 7 e 8)
+# OPERAÇÕES CRUD DE CLIENTES (Fichas 7 e 8 - Ativação de Botões)
 # ============================================================
 
-# 1. Função para Ler TODOS os clientes (Essencial para listar na tabela com botões funcionais)
 def obter_todos_clientes():
     with connection.cursor() as cursor:
         query = """
@@ -17,7 +15,6 @@ def obter_todos_clientes():
         cursor.execute(query)
         return cursor.fetchall()
 
-# 2. Função para Criar (INSERT) um cliente na tabela users
 def inserir_cliente(nome, email, password_hash, company):
     with connection.cursor() as cursor:
         query = """
@@ -26,18 +23,12 @@ def inserir_cliente(nome, email, password_hash, company):
         """
         cursor.execute(query, [nome, email, password_hash, company])
 
-# 3. Função para Ler apenas um cliente por ID (Usado para carregar o formulário de Edição)
 def obter_cliente_por_id(id_cliente):
     with connection.cursor() as cursor:
-        query = """
-            SELECT id, name, email, company 
-            FROM users 
-            WHERE id = %s AND role = 'client';
-        """
+        query = "SELECT id, name, email, company FROM users WHERE id = %s AND role = 'client';"
         cursor.execute(query, [id_cliente])
         return cursor.fetchone()
 
-# 4. Função para Atualizar (UPDATE) os dados de um cliente
 def atualizar_cliente(id_cliente, nome, email, company):
     with connection.cursor() as cursor:
         query = """
@@ -47,21 +38,18 @@ def atualizar_cliente(id_cliente, nome, email, company):
         """
         cursor.execute(query, [nome, email, company, id_cliente])
 
-# 5. Função para Eliminar (DELETE) um cliente
 def eliminar_cliente_db(id_cliente):
     with connection.cursor() as cursor:
-        query = """
-            DELETE FROM users 
-            WHERE id = %s AND role = 'client';
-        """
+        query = "DELETE FROM users WHERE id = %s AND role = 'client';"
         cursor.execute(query, [id_cliente])
 
 
 # ============================================================
-# QUERIES METRICAS DO DASHBOARD AVANÇADO (Ficha 9)
+# REQUISITOS OBRIGATÓRIOS DA FICHA 9 (SQL SELECT)
 # ============================================================
 
-# 1. Número de contratos por estado de conformidade/progresso NIS2
+# 1. Número de clientes por estado de conformidade NIS2
+# (Conforme, Em avaliação, Com pendências)
 def obter_clientes_por_conformidade():
     with connection.cursor() as cursor:
         query = """
@@ -73,7 +61,7 @@ def obter_clientes_por_conformidade():
         cursor.execute(query)
         return cursor.fetchall()
 
-# 2. Top 5 utilizadores/clientes com mais tickets de incidentes de segurança registados
+# 2. Top 5 clientes com mais incidentes de segurança registados
 def obter_top5_clientes_incidentes():
     with connection.cursor() as cursor:
         query = """
@@ -104,19 +92,20 @@ def obter_documentos_por_cliente_mes():
         cursor.execute(query)
         return cursor.fetchall()
 
-# 4. Distribuição de utilizadores por perfil (role)
+# 4. Distribuição de utilizadores por perfil (Administrador, Colaborador e Cliente)
+# Nota: Mapeado para os teus roles reais: 'admin', 'manager'/'employee' e 'client'
 def obter_distribuicao_perfil_utilizadores():
     with connection.cursor() as cursor:
         query = """
             SELECT role, COUNT(id) as total
             FROM users
-            WHERE role IN ('admin', 'manager', 'client')
+            WHERE role IN ('admin', 'manager', 'client', 'employee')
             GROUP BY role;
         """
         cursor.execute(query)
         return cursor.fetchall()
 
-# 5. Estado dos tickets de suporte e tempo médio de resolução
+# 5. Estado dos pedidos/tickets de suporte e tempo médio de resolução
 def obter_estado_e_tempo_medio_tickets():
     with connection.cursor() as cursor:
         query = """

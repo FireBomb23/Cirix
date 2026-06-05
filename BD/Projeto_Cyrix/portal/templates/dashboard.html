@@ -3,23 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ciryx Portal - Dashboard Avançado NIS2</title>
+    <title>Ciryx</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Variáveis de Cor Fiéis ao Protótipo Ciryx */
         :root {
             --yellow: #EAB308;
             --yellow-light: #FEF08A;
             --yellow-dark: #A16207;
+            --slate-950: #090d16;
             --slate-900: #0F172A;
             --slate-800: #1E293B;
             --slate-700: #334155;
             --slate-600: #475569;
-            --slate-500: #64748B;
-            --slate-400: #94A3B8;
-            --slate-200: #E2E8F0;
             --slate-100: #F1F5F9;
             --slate-50: #F8FAFC;
             --green: #16A34A;
@@ -28,338 +25,267 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Sans', sans-serif; color: var(--slate-800); background: var(--slate-50); line-height: 1.5; }
-        h1, h2, h3 { font-family: 'Syne', sans-serif; color: var(--slate-900); }
+        body { font-family: 'DM Sans', sans-serif; color: var(--slate-800); background: #FAF9F6; line-height: 1.5; }
+        h1, h2, h3, h4 { font-family: 'Syne', sans-serif; color: var(--slate-900); }
 
-        /* Barra de Navegação Superior (Idêntica ao index.html) */
-        .navbar { background: var(--slate-900); border-bottom: 1px solid var(--slate-800); padding: 1rem 0; position: sticky; top: 0; z-index: 50; }
-        .nav-container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; }
-        .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.35rem; color: white; text-decoration: none; letter-spacing: -0.02em; }
-        .brand span { color: var(--yellow); }
-        .nav-badge { background: var(--slate-800); border: 1px solid var(--slate-700); padding: 0.35rem 0.75rem; border-radius: 0.5rem; font-size: 0.8rem; font-weight: 500; color: var(--slate-300); }
+        /* Topbar Minimalista */
+        .topbar { background: var(--slate-950); padding: 1.5rem 0; border-bottom: 4px solid var(--slate-900); }
+        .topbar-container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; color: white; text-decoration: none; }
+        .logo span { color: var(--yellow); }
+        .system-pill { font-size: 0.7rem; font-weight: 700; color: #94A3B8; border: 1px solid var(--slate-700); padding: 0.35rem 0.75rem; border-radius: 9999px; letter-spacing: 0.05em; text-transform: uppercase; }
 
-        /* Banner de Cabeçalho Interno */
-        .header-section { background: linear-gradient(180deg, var(--slate-900) 0%, #131c2e 100%); color: white; padding: 3rem 0; border-bottom: 2px solid var(--yellow); margin-bottom: 2rem; }
+        /* Banner de Enquadramento */
+        .hero-banner { background: var(--slate-900); color: white; padding: 3.5rem 0; border-bottom: 2px solid var(--yellow); }
         .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
-        .header-section h1 { font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5rem; }
-        .header-section p { color: var(--slate-400); font-size: 1rem; max-width: 600px; }
+        .hero-banner h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+        .hero-banner p { color: #94A3B8; font-size: 1.05rem; font-weight: 300; }
 
-        /* Widgets / Minitítulos de Estatísticas (KPIs) */
-        .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
-        .kpi-card { background: white; border: 1px solid var(--slate-200); padding: 1.25rem; border-radius: 0.75rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-        .kpi-icon { width: 3rem; height: 3rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; }
-        .kpi-icon.yellow { background: #FEF9C3; color: var(--yellow-dark); }
-        .kpi-icon.red { background: #FEE2E2; color: var(--red); }
-        .kpi-icon.blue { background: #DBEAFE; color: var(--blue); }
-        .kpi-info .kpi-val { font-size: 1.5rem; font-weight: 700; color: var(--slate-900); line-height: 1.1; }
-        .kpi-info .kpi-label { font-size: 0.8rem; color: var(--slate-500); font-weight: 500; margin-top: 0.25rem; }
+        /* Estrutura de Grelha: Blocos Horizontais Otimizados */
+        .workspace { margin: 3rem 0 6rem 0; display: flex; flex-direction: column; gap: 2.5rem; }
+        
+        /* Exercício 1: Grelha de Cartões de Bloco */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 1rem; }
+        .kpi-card { background: white; border: 1px solid #E2E8F0; padding: 1.75rem; border-radius: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; position: relative; overflow: hidden; }
+        .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; }
+        .kpi-card.kpi-green::before { background-color: var(--green); }
+        .kpi-card.kpi-yellow::before { background-color: var(--yellow); }
+        .kpi-card.kpi-red::before { background-color: var(--red); }
+        .kpi-value { font-family: 'Syne', sans-serif; font-size: 2.25rem; font-weight: 800; color: var(--slate-900); }
+        .kpi-label { font-size: 0.85rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.02em; }
 
-        /* Grelha do Painel Principal */
-        .main-layout { display: grid; grid-template-columns: 1fr; gap: 1.75rem; margin-bottom: 4rem; }
-        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 1.75rem; }
-        @media (max-width: 640px) { .dash-grid { grid-template-columns: 1fr; } }
+        /* Estrutura de Linha Segmentada (Row Module) */
+        .row-module { background: white; border: 1px solid #E2E8F0; border-radius: 0.75rem; overflow: hidden; }
+        .row-header { padding: 1.5rem; background: var(--slate-50); border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: space-between; }
+        .row-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--slate-900); }
+        .row-body { padding: 1.5rem; }
 
-        /* Cartões de Conteúdo */
-        .card { background: white; border: 1px solid var(--slate-200); border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow: hidden; display: flex; flex-direction: column; }
-        .card-header { padding: 1.25rem 1.5rem; background: white; border-bottom: 1px solid var(--slate-200); display: flex; align-items: center; justify-content: space-between; }
-        .card-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--slate-900); display: flex; align-items: center; gap: 0.5rem; }
-        .card-body { padding: 1.5rem; flex: 1; }
+        /* Grelhas de Dados de Visualização Rápida (Inline Columns) */
+        .inline-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; }
+        .data-strip { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; background: var(--slate-50); border: 1px solid #F1F5F9; border-radius: 0.5rem; }
+        .data-strip-info { display: flex; flex-direction: column; gap: 0.15rem; }
+        .data-strip-title { font-weight: 700; font-size: 0.95rem; color: var(--slate-900); }
+        .data-strip-subtitle { font-size: 0.8rem; color: var(--slate-500); }
 
-        /* Componentes de Tabelas do Protótipo */
-        .table-wrap { overflow-x: auto; width: 100%; }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { padding: 0.75rem 1.25rem; font-size: 0.75rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; background: var(--slate-50); border-bottom: 1px solid var(--slate-200); }
-        td { padding: 0.9rem 1.25rem; font-size: 0.875rem; border-bottom: 1px solid var(--slate-100); color: var(--slate-700); vertical-align: middle; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: var(--slate-50); }
+        /* Tabelas Operacionais Limpas */
+        .table-container { overflow-x: auto; }
+        .clean-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .clean-table th { padding: 1rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: var(--slate-500); text-transform: uppercase; background: var(--slate-50); border-bottom: 1px solid #E2E8F0; }
+        .clean-table td { padding: 1.15rem 1.5rem; font-size: 0.9rem; border-bottom: 1px solid #F1F5F9; color: var(--slate-700); }
+        .clean-table tr:last-child td { border-bottom: none; }
+        .clean-table tr:hover td { background: var(--slate-50); }
 
-        /* Badges de Estado Estilizados */
-        .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; line-height: 1; text-transform: capitalize; }
-        .badge-yellow { background: #FEF9C3; color: var(--yellow-dark); }
-        .badge-green { background: #DCFCE7; color: #166534; }
-        .badge-red { background: #FEE2E2; color: #991B1B; }
-        .badge-blue { background: #DBEAFE; color: #1E40AF; }
-        .badge-slate { background: var(--slate-100); color: var(--slate-700); }
+        /* Badges Sólidos */
+        .badge-pill { display: inline-flex; align-items: center; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.725rem; font-weight: 700; text-transform: uppercase; }
+        .pill-green { background: #DCFCE7; color: #166534; }
+        .pill-yellow { background: #FEF08A; color: #854d0e; }
+        .pill-red { background: #FEE2E2; color: #991b1b; }
+        .pill-blue { background: #DBEAFE; color: #1e40af; }
+        .pill-slate { background: #E2E8F0; color: #334155; }
 
-        /* Botões de Ação do Sistema */
-        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; padding: 0.5rem 1.25rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; text-decoration: none; transition: all 0.2s; border: none; cursor: pointer; }
-        .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 0.375rem; }
-        .btn-primary { background: var(--slate-900); color: white; }
-        .btn-primary:hover { background: var(--slate-800); }
-        .btn-success { background: var(--yellow); color: var(--slate-900); }
-        .btn-success:hover { background: #CA9A04; }
-        .btn-outline { background: transparent; border: 1px solid var(--slate-200); color: var(--slate-600); }
-        .btn-outline:hover { background: var(--slate-50); border-color: var(--slate-300); color: var(--slate-900); }
-        .btn-danger-text { background: transparent; color: var(--red); }
-        .btn-danger-text:hover { background: #FEE2E2; border-radius: 0.375rem; }
+        /* Botões de Comando Executivo */
+        .btn-core { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.5rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 700; text-decoration: none; transition: background 0.15s; border: none; cursor: pointer; }
+        .btn-core-sm { padding: 0.4rem 0.85rem; font-size: 0.775rem; border-radius: 0.375rem; font-weight: 600; }
+        .btn-yellow { background: var(--yellow); color: var(--slate-900); }
+        .btn-yellow:hover { background: #CA9A04; }
+        .btn-secondary { background: transparent; border: 1px solid #CBD5E1; color: var(--slate-600); }
+        .btn-secondary:hover { background: var(--slate-50); color: var(--slate-900); border-color: #94A3B8; }
+        .btn-danger-link { background: transparent; color: var(--red); font-weight: 600; }
+        .btn-danger-link:hover { background: #FEE2E2; }
 
-        /* Estado Vazio */
-        .alert-empty { padding: 2rem; text-align: center; color: var(--slate-400); font-size: 0.875rem; font-style: italic; }
-
-        /* Ícones Auxiliares Inline (SVG) */
-        .svg-icon { width: 1.25rem; height: 1.25rem; fill: currentColor; display: inline-block; vertical-align: middle; }
+        .no-data { padding: 3rem 0; text-align: center; color: #94A3B8; font-style: italic; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="#" class="brand">CIRYX<span>.</span></a>
-            <div class="nav-badge">Painel Interno Executivo (Módulo SQL Nativo)</div>
+    <nav class="topbar">
+        <div class="topbar-container">
+            <a href="#" class="logo">CIRYX<span>.</span></a>
+            <div class="system-pill">Auditoria Relacional Framework</div>
         </div>
     </nav>
 
-    <header class="header-section">
+    <header class="hero-banner">
         <div class="container">
-            <h1>Consola de Administração NIS2</h1>
-            <p>Monitorização centralizada do ecossistema, auditoria de dados documentais, processamento de incidentes e controlo de SLAs operacionais.</p>
+            <h1>Consola de Monitorização Avançada SQL</h1>
+            <p>Mapeamento de integridade relacional, tratamento de dados de cibersegurança e métricas NIS2.</p>
         </div>
     </header>
 
     <main class="container">
-        
-        <div class="kpi-row">
-            <div class="kpi-card">
-                <div class="kpi-icon yellow">
-                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
-                </div>
-                <div class="kpi-info">
-                    <div class="kpi-val">NIS2</div>
-                    <div class="kpi-label">Auditoria de Conformidade</div>
-                </div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-icon red">
-                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                </div>
-                <div class="kpi-info">
-                    <div class="kpi-val">Críticos</div>
-                    <div class="kpi-label">Rastreio de Incidentes</div>
-                </div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-icon blue">
-                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-                </div>
-                <div class="kpi-info">
-                    <div class="kpi-val">Repositório</div>
-                    <div class="kpi-label">Documentação Partilhada</div>
-                </div>
-            </div>
-        </div>
+        <div class="workspace">
 
-        <div class="main-layout">
-
-            <div class="card">
-                <div class="card-header">
-                    <h2>
-                        <svg class="svg-icon" style="color: var(--yellow);" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 7s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-                        Gestão Ativa de Organizações Reguladas
-                    </h2>
-                    <a href="{% url 'criar_cliente' %}" class="btn btn-success">
-                        <svg class="svg-icon" viewBox="0 0 24 24" style="width:1rem; height:1rem;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                        Registar Cliente
-                    </a>
+            <section class="row-module">
+                <div class="row-header">
+                    <h3>Gestão de Organizações Registadas</h3>
+                    <a href="{% url 'criar_cliente' %}" class="btn-core btn-yellow">Registar Nova Entidade</a>
                 </div>
-                <div class="table-wrap">
-                    <table>
+                <div class="table-container">
+                    <table class="clean-table">
                         <thead>
                             <tr>
-                                <th>Entidade / Contacto</th>
-                                <th>Identificador Físico</th>
-                                <th style="text-align: right;">Ações de Base de Dados</th>
+                                <th>Entidade Corporativa</th>
+                                <th>Endereço Eletrónico / Canal</th>
+                                <th>Registo (ID Físico)</th>
+                                <th style="text-align: right;">Ações de Escrita Relacional</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for cli in lista_clientes %}
                             <tr>
-                                <td>
-                                    <div style="font-weight: 600; color: var(--slate-900);">{{ cli.1 }}</div>
-                                    <div style="font-size: 0.75rem; color: var(--slate-500);">Empresa: {{ cli.3 }} | Email: {{ cli.2 }}</div>
-                                </td>
-                                <td><span class="badge badge-slate">PostgreSQL ID #{{ cli.0 }}</span></td>
+                                <td><strong style="color: var(--slate-900);">{{ cli.3 }}</strong></td>
+                                <td>{{ cli.1 }} <span style="color: #94A3B8; font-size: 0.8rem;">— {{ cli.2 }}</span></td>
+                                <td><span class="badge-pill pill-slate">ID #{{ cli.0 }}</span></td>
                                 <td style="text-align: right;">
-                                    <div style="display: inline-flex; gap: 0.25rem;">
-                                        <a href="{% url 'editar_cliente' cli.0 %}" class="btn btn-sm btn-outline">Editar</a>
-                                        <a href="{% url 'eliminar_cliente' cli.0 %}" class="btn btn-sm btn-danger-text" onclick="return confirm('Tem a certeza que deseja remover {{ cli.1 }} do PostgreSQL?')">Eliminar</a>
+                                    <div style="display: inline-flex; gap: 0.35rem;">
+                                        <a href="{% url 'editar_cliente' cli.0 %}" class="btn-core btn-core-sm btn-secondary">Editar</a>
+                                        <a href="{% url 'eliminar_cliente' cli.0 %}" class="btn-core btn-core-sm btn-danger-link" onclick="return confirm('Pretende remover permanentemente a organização {{ cli.3 }} da base de dados?')">Eliminar</a>
                                     </div>
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="3" class="alert-empty">Nenhum cliente disponível para operações CRUD na tabela users.</td></tr>
+                            <tr><td colspan="4" class="no-data">Nenhuma organização de perfil 'client' foi mapeada na tabela 'users'.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+            </section>
+
+            <section style="display: flex; flex-direction: column; gap: 1rem;">
+                <h4 style="font-size: 1.1rem; font-weight: 700;">1. Sumário de Estado de Conformidade Regulatória NIS2</h4>
+                <div class="kpi-grid">
+                    {% for linha in dados_conformidade %}
+                        <div class="kpi-card 
+                            {% if 'conforme' in linha.0|lower or 'completed' in linha.0|lower or 'resolved' in linha.0|lower %} kpi-green 
+                            {% elif 'avaliação' in linha.0|lower or 'progress' in linha.0|lower or 'in-progress' in linha.0|lower %} kpi-yellow 
+                            {% else %} kpi-red {% endif %}">
+                            
+                            <span class="kpi-value">{{ linha.1 }}</span>
+                            <span class="kpi-label">
+                                {% if 'completed' in linha.0|lower or 'conforme' in linha.0|lower %}Conforme
+                                {% elif 'in-progress' in linha.0|lower or 'progress' in linha.0|lower %}Em Avaliação
+                                {% else %}Com Pendências{% endif %}
+                                ({{ linha.0 }})
+                            </span>
+                        </div>
+                    {% empty %}
+                        <div class="kpi-card" style="grid-column: span 3; text-align: center; color: #94A3B8;">Sem registos de auditoria em annual_services.</div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <div class="inline-grid">
+
+                <article class="row-module">
+                    <div class="row-header">
+                        <h3>2. Volume Crítico de Incidentes (Top 5)</h3>
+                    </div>
+                    <div class="row-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        {% for linha in top5_incidentes %}
+                        <div class="data-strip" style="border-left: 4px solid var(--red);">
+                            <div class="data-strip-info">
+                                <span class="data-strip-title">{{ linha.0 }}</span>
+                                <span class="data-strip-subtitle">Monitorização ativa sob protocolo NIS2</span>
+                            </div>
+                            <span class="badge-pill pill-red">{{ linha.1 }} Casos</span>
+                        </div>
+                        {% empty %}
+                        <div class="no-data">Nenhum alerta crítico de segurança guardado na tabela.</div>
+                        {% endfor %}
+                    </div>
+                </article>
+
+                <article class="row-module">
+                    <div class="row-header">
+                        <h3>3. Carregamentos de Documentação Técnica</h3>
+                    </div>
+                    <div class="row-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        {% for linha in documentos_mes %}
+                        <div class="data-strip">
+                            <div class="data-strip-info">
+                                <span class="data-strip-title" style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ linha.0 }}</span>
+                                <span class="data-strip-subtitle">Submissão de evidências digitais</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span class="badge-pill pill-blue">{{ linha.1|stringformat:"02d" }}/{{ linha.2 }}</span>
+                                <strong style="color: var(--slate-900); font-size: 0.9rem;">{{ linha.3 }} un.</strong>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="no-data">Sem carregamentos de ficheiros registados em 'documents'.</div>
+                        {% endfor %}
+                    </div>
+                </article>
+
+                <article class="row-module">
+                    <div class="row-header">
+                        <h3>4. Distribuição de Contas na Infraestrutura</h3>
+                    </div>
+                    <div class="row-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        {% for linha in perfis_utilizadores %}
+                        <div class="data-strip">
+                            <div class="data-strip-info">
+                                <span class="data-strip-title">
+                                    {% if "admin" in linha.0|lower %}Administrador de Sistema
+                                    {% elif "client" in linha.0|lower or "cliente" in linha.0|lower %}Cliente Externo Regulado
+                                    {% else %}Colaborador Operacional{% endif %}
+                                </span>
+                                <span class="data-strip-subtitle">Perfil Técnico: [{{ linha.0 }}]</span>
+                            </div>
+                            <span class="badge-pill pill-slate"><strong>{{ linha.1 }}</strong> Contas</span>
+                        </div>
+                        {% empty %}
+                        <div class="no-data">Nenhum perfil de conta contabilizado no PostgreSQL.</div>
+                        {% endfor %}
+                    </div>
+                </article>
+
             </div>
 
-            <div class="dash-grid">
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h2>1. Estado de Conformidade NIS2 (Contratos)</h2>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Estado de Resolução</th>
-                                    <th>Volume de Contratos Ativos</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for linha in dados_conformidade %}
-                                <tr>
-                                    <td>
-                                        {% if "completed" in linha.0|lower or "conforme" in linha.0|lower %}
-                                            <span class="badge badge-green">{{ linha.0 }}</span>
-                                        {% elif "in-progress" in linha.0|lower or "avaliação" in linha.0|lower %}
-                                            <span class="badge badge-yellow">{{ linha.0 }}</span>
-                                        {% else %}
-                                            <span class="badge badge-red">{{ linha.0 }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td><strong>{{ linha.1 }}</strong> contrato(s) no sistema</td>
-                                </tr>
-                                {% empty %}
-                                <tr><td colspan="2" class="alert-empty">Nenhum contrato NIS2 mapeado em annual_services.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+            <section class="row-module">
+                <div class="row-header">
+                    <h3>5. Eficiência Operacional de Suporte (Cumprimento de SLAs)</h3>
                 </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h2>2. Top 5 Clientes Críticos (Incidentes)</h2>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Organização / Cliente</th>
-                                    <th>Total Ocorrências</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for linha in top5_incidentes %}
-                                <tr>
-                                    <td><span style="font-weight: 600; color: var(--slate-900);">{{ linha.0 }}</span></td>
-                                    <td>
-                                        <span class="badge badge-red" style="font-weight: 700;">{{ linha.1 }} Incidentes</span>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr><td colspan="2" class="alert-empty">Nenhum incidente crítico registado no histórico recente de tickets.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-container">
+                    <table class="clean-table">
+                        <thead>
+                            <tr>
+                                <th>Estado de Resolução Técnico</th>
+                                <th>Volume Total de Pedidos</th>
+                                <th>Tempo Médio de Resolução Calculado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for linha in tickets_suporte %}
+                            <tr>
+                                <td>
+                                    {% if "resolved" in linha.0|lower or "resolvido" in linha.0|lower or "closed" in linha.0|lower %}
+                                        <span class="badge-pill pill-green">
+                                            {% if "resolved" in linha.0|lower %}Resolvido{% else %}{{ linha.0 }}{% endif %}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge-pill pill-yellow">
+                                            {% if "open" in linha.0|lower %}Aberto{% else %}{{ linha.0 }}{% endif %}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>Contabilizados <strong>{{ linha.1 }}</strong> pedido(s) técnico(s)</td>
+                                <td>
+                                    {% if linha.2 != None %}
+                                        Média de <strong style="color: var(--slate-900); font-size: 1rem;">{{ linha.2|floatformat:1 }}</strong> dia(s) para fecho definitivo
+                                    {% else %}
+                                        <span style="color: #94A3B8; font-style: italic;">A aguardar intervenção técnica</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="no-data">Nenhum pedido técnico ou ticket listado no histórico.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+            </section>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h2>3. Upload de Documentação Técnica / Mês</h2>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Cliente</th>
-                                    <th>Período Temporal</th>
-                                    <th>Submissões Realizadas</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for linha in documentos_mes %}
-                                <tr>
-                                    <td>{{ linha.0 }}</td>
-                                    <td><span class="badge badge-blue">{{ linha.1|stringformat:"02d" }}/{{ linha.2 }}</span></td>
-                                    <td><strong>{{ linha.3 }}</strong> ficheiro(s) carregado(s)</td>
-                                </tr>
-                                {% empty %}
-                                <tr><td colspan="3" class="alert-empty">Sem registos de submissão documental pendente.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h2>4. Vetores de Acesso por Perfil (Roles)</h2>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Perfil Técnico (Role)</th>
-                                    <th>Utilizadores Registados</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for linha in perfis_utilizadores %}
-                                <tr>
-                                    <td>
-                                        {% if "admin" in linha.0|lower %}
-                                            <span class="badge badge-red">{{ linha.0 }}</span>
-                                        {% elif "client" in linha.0|lower or "cliente" in linha.0|lower %}
-                                            <span class="badge badge-green">{{ linha.0 }}</span>
-                                        {% else %}
-                                            <span class="badge badge-blue">{{ linha.0 }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td><strong>{{ linha.1 }}</strong> contas ativas na BD</td>
-                                </tr>
-                                {% empty %}
-                                <tr><td colspan="2" class="alert-empty">Base de credenciais de utilizadores sem registos.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card" style="grid-column: span 2;">
-                    <div class="card-header">
-                        <h2>5. Cumprimento de SLA & Tempo Médio de Resolução de Tickets</h2>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Estado Operacional</th>
-                                    <th>Volume Associado</th>
-                                    <th>Média para Fecho (Módulo de SLA)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for linha in tickets_suporte %}
-                                <tr>
-                                    <td>
-                                        {% if "resolvido" in linha.0|lower or "closed" in linha.0|lower or "resolved" in linha.0|lower %}
-                                            <span class="badge badge-green">{{ linha.0 }}</span>
-                                        {% else %}
-                                            <span class="badge badge-yellow">{{ linha.0 }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td><strong>{{ linha.1 }}</strong> ticket(s) ativo(s)</td>
-                                    <td>
-                                        {% if linha.2 != None %}
-                                            <strong>{{ linha.2|floatformat:1 }}</strong> dia(s) útil(eis)
-                                        {% else %}
-                                            <span style="color: var(--slate-400); font-style: italic;">Pendente de Resolução</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr><td colspan="3" class="alert-empty">Nenhum ticket aberto ou em processamento técnico na tabela.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
         </div>
     </main>
 
