@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api.js';
 import { entities } from '../entities.js';
 
@@ -26,10 +26,7 @@ export default function ListPage() {
     }
   }
 
-  useEffect(() => {
-    carregar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entity]);
+  useEffect(() => { carregar(); }, [entity]); // eslint-disable-line
 
   async function eliminar(id) {
     if (!window.confirm('Tem a certeza que deseja eliminar este registo?')) return;
@@ -41,55 +38,54 @@ export default function ListPage() {
     }
   }
 
-  if (!config) return <p>Entidade desconhecida.</p>;
+  if (!config) return <p className="muted">Entidade desconhecida.</p>;
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex align-center justify-between mb-4">
         <h1 className="page-title">{config.label}</h1>
-        <button className="btn btn-primary" onClick={() => navigate(`/${entity}/novo`)}>
-          + Novo {config.singular}
-        </button>
+        <div className="flex gap-2">
+          <button className="btn btn-outline btn-sm" onClick={() => navigate('/admin')}>← Dashboard</button>
+          <button className="btn btn-primary btn-sm" onClick={() => navigate(`/admin/${entity}/novo`)}>
+            + Novo {config.singular}
+          </button>
+        </div>
       </div>
 
       {loading && <p className="muted">A carregar...</p>}
       {erro && <p className="erro">Erro: {erro}</p>}
 
       {!loading && !erro && (
-        <table className="table">
-          <thead>
-            <tr>
-              {config.columns.map((c) => (
-                <th key={c.key}>{c.label}</th>
-              ))}
-              <th className="acoes-col">Acoes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && (
+        <div className="table-wrapper">
+          <table className="table">
+            <thead>
               <tr>
-                <td colSpan={config.columns.length + 1} className="muted text-center">
-                  Sem registos.
-                </td>
+                {config.columns.map((c) => <th key={c.key}>{c.label}</th>)}
+                <th className="acoes-col">Ações</th>
               </tr>
-            )}
-            {rows.map((row) => (
-              <tr key={row.id}>
-                {config.columns.map((c) => (
-                  <td key={c.key}>{c.render ? c.render(row) : formatar(row[c.key])}</td>
-                ))}
-                <td className="acoes">
-                  <Link className="btn btn-sm" to={`/${entity}/editar/${row.id}`}>
-                    Editar
-                  </Link>
-                  <button className="btn btn-sm btn-danger" onClick={() => eliminar(row.id)}>
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.length === 0 && (
+                <tr>
+                  <td colSpan={config.columns.length + 1} className="muted text-center">Sem registos.</td>
+                </tr>
+              )}
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  {config.columns.map((c) => (
+                    <td key={c.key}>{c.render ? c.render(row) : formatar(row[c.key])}</td>
+                  ))}
+                  <td>
+                    <div className="acoes">
+                      <button className="btn btn-sm" onClick={() => navigate(`/admin/${entity}/editar/${row.id}`)}>Editar</button>
+                      <button className="btn btn-sm btn-danger" onClick={() => eliminar(row.id)}>Eliminar</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

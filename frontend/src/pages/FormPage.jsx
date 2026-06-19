@@ -10,11 +10,10 @@ export default function FormPage() {
   const emEdicao = Boolean(id);
 
   const [form, setForm] = useState({});
-  const [refOptions, setRefOptions] = useState({}); // opcoes para campos "ref"
+  const [refOptions, setRefOptions] = useState({});
   const [erro, setErro] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Carrega as opcoes dos campos "ref" (ex: lista de utilizadores)
   useEffect(() => {
     if (!config) return;
     config.fields
@@ -23,27 +22,18 @@ export default function FormPage() {
         try {
           const { data } = await api.get(f.refEndpoint);
           setRefOptions((prev) => ({ ...prev, [f.name]: data }));
-        } catch {
-          /* ignora: campo fica vazio se a BD estiver offline */
-        }
+        } catch { /* ignora */ }
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entity]);
+  }, [entity]); // eslint-disable-line
 
-  // Valores iniciais (criar) ou carregamento do registo (editar)
   useEffect(() => {
     if (!config) return;
-
     if (!emEdicao) {
-      // Defaults para criacao (booleans a true por omissao)
       const inicial = {};
-      config.fields.forEach((f) => {
-        inicial[f.name] = f.type === 'boolean' ? true : '';
-      });
+      config.fields.forEach((f) => { inicial[f.name] = f.type === 'boolean' ? true : ''; });
       setForm(inicial);
       return;
     }
-
     (async () => {
       setLoading(true);
       try {
@@ -54,7 +44,7 @@ export default function FormPage() {
           if (f.type === 'boolean') v = Boolean(v);
           else if (f.type === 'datetime-local' && v) v = String(v).slice(0, 16);
           else if (f.type === 'date' && v) v = String(v).slice(0, 10);
-          else if (f.type === 'password') v = ''; // nunca pre-preencher passwords
+          else if (f.type === 'password') v = '';
           else v = v ?? '';
           limpo[f.name] = v;
         });
@@ -65,8 +55,7 @@ export default function FormPage() {
         setLoading(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entity, id]);
+  }, [entity, id]); // eslint-disable-line
 
   function alterar(name, value) {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -81,40 +70,45 @@ export default function FormPage() {
       } else {
         await api.post(`${config.endpoint}/create`, form);
       }
-      navigate(`/${entity}`);
+      navigate(`/admin/${entity}`);
     } catch (e) {
       setErro(e.response?.data?.error || e.message);
     }
   }
 
-  if (!config) return <p>Entidade desconhecida.</p>;
+  if (!config) return <p className="muted">Entidade desconhecida.</p>;
 
   return (
     <div className="form-wrap">
-      <h1 className="page-title mb-4">
-        {emEdicao ? `Editar ${config.singular}` : `Novo ${config.singular}`}
-      </h1>
+      <div className="flex align-center gap-2 mb-4">
+        <button className="btn btn-outline btn-sm" onClick={() => navigate(`/admin/${entity}`)}>← Voltar</button>
+        <h1 className="page-title" style={{ marginBottom: 0 }}>
+          {emEdicao ? `Editar ${config.singular}` : `Novo ${config.singular}`}
+        </h1>
+      </div>
 
       {erro && <p className="erro">Erro: {erro}</p>}
       {loading && <p className="muted">A carregar...</p>}
 
-      <form onSubmit={submeter} className="form">
-        {config.fields.map((f) => (
-          <div className="form-row" key={f.name}>
-            <label>{f.label}{f.required && <span className="req">*</span>}</label>
-            {renderCampo(f, form[f.name], alterar, refOptions[f.name])}
-            {f.hint && <small className="muted">{f.hint}</small>}
+      <div className="crud-form">
+        <form onSubmit={submeter}>
+          {config.fields.map((f) => (
+            <div className="form-row" key={f.name}>
+              <label>{f.label}{f.required && <span className="req">*</span>}</label>
+              {renderCampo(f, form[f.name], alterar, refOptions[f.name])}
+              {f.hint && <small className="muted">{f.hint}</small>}
+            </div>
+          ))}
+          <div className="form-actions">
+            <button type="button" className="btn btn-outline" onClick={() => navigate(`/admin/${entity}`)}>
+              Cancelar
+            </button>
+            <button type="submit" className="btn btn-primary">
+              {emEdicao ? 'Guardar alterações' : 'Criar'}
+            </button>
           </div>
-        ))}
-        <div className="form-actions">
-          <button type="button" className="btn" onClick={() => navigate(`/${entity}`)}>
-            Cancelar
-          </button>
-          <button type="submit" className="btn btn-primary">
-            {emEdicao ? 'Guardar alteracoes' : 'Criar'}
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }
@@ -144,9 +138,7 @@ function renderCampo(f, value, alterar, options) {
     return (
       <select value={value ?? ''} onChange={(e) => alterar(f.name, e.target.value)} required={f.required}>
         <option value="">-- selecionar --</option>
-        {f.options.map((o) => (
-          <option key={o} value={o}>{o}</option>
-        ))}
+        {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
     );
   }

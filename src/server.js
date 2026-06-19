@@ -30,6 +30,21 @@ app.use('/tickets', ticketRoutes);
 app.use('/documents', documentRoutes);
 app.use('/service-requests', serviceRequestRoutes);
 
+// POST /contact — submissão pública do formulário de contacto
+app.post('/contact', async (req, res) => {
+  try {
+    const { sequelize: db } = require('./models');
+    const { name, email, company, message } = req.body;
+    await db.query(
+      'INSERT INTO contact_submissions (name, email, company, message) VALUES (?, ?, ?, ?)',
+      { replacements: [name, email, company || null, message] }
+    );
+    res.json({ status: 'success' });
+  } catch (e) {
+    res.status(500).json({ status: 'error', error: e.message });
+  }
+});
+
 // Arranque do servidor (apos testar a ligacao a BD)
 async function start() {
   try {

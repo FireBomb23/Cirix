@@ -3,6 +3,21 @@ const { User } = require('../models');
 // Nao expor o password_hash nas listagens
 const SEM_PASSWORD = { exclude: ['password_hash'] };
 
+// POST /users/login
+exports.user_login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(401).json({ status: 'error', message: 'Credenciais inválidas.' });
+    if (!user.active) return res.status(403).json({ status: 'error', message: 'Conta desativada.' });
+    if (user.password_hash !== password) return res.status(401).json({ status: 'error', message: 'Credenciais inválidas.' });
+    const { password_hash: _omit, ...userData } = user.toJSON();
+    res.json({ status: 'success', user: userData });
+  } catch (e) {
+    res.status(500).json({ status: 'error', message: e.message });
+  }
+};
+
 // GET /users
 exports.user_list = async (req, res) => {
   try {
