@@ -74,7 +74,7 @@ WSGI_APPLICATION = 'ciryx_project.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg', # <- Tem de terminar assim!
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'projeto_BD',       
         'USER': 'postgres',         
         'PASSWORD': 'BDCatarina6',  
