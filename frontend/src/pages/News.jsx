@@ -1,8 +1,15 @@
-import { mockArticles } from '../mockData.js';
+import { useState, useEffect } from 'react';
+import { apiGetArticles } from '../apiService.js';
 
 export default function News() {
-  const featured = mockArticles[0];
-  const rest = mockArticles.slice(1);
+  const [articles, setArticles] = useState([]);
+
+  useEffect(() => {
+    apiGetArticles().then(setArticles).catch(() => setArticles([]));
+  }, []);
+
+  const featured = articles[0];
+  const rest = articles.slice(1);
 
   return (
     <>
@@ -16,6 +23,7 @@ export default function News() {
       <section className="section">
         <div className="container">
           {/* Featured article */}
+          {featured && (
           <div style={{ marginBottom: '3rem' }}>
             <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Artigo em Destaque</h2>
             <div className="card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, overflow: 'hidden' }}>
@@ -35,6 +43,7 @@ export default function News() {
               </div>
             </div>
           </div>
+          )}
 
           {/* Other articles */}
           <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Mais Artigos</h2>

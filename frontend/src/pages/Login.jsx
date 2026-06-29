@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { twoFAWords } from '../mockData.js';
 
 const ShieldIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="36" height="36" style={{ color: 'var(--yellow)' }}>
@@ -12,12 +11,12 @@ const ShieldIcon = () => (
 const DEMO_USERS = [
   { email: 'admin@ciryx.pt', password: 'admin123', role: 'Administrador', words: 'segurança, firewall, cifra' },
   { email: 'manager@ciryx.pt', password: 'manager123', role: 'Gestor', words: 'proteção, ameaça, escudo' },
-  { email: 'cliente@empresa.pt', password: 'cliente123', role: 'Cliente', words: 'privacidade, código, autenticação' },
+  { email: 'cliente@empresa.pt', password: 'client123', role: 'Cliente', words: 'privacidade, código, autenticação' },
 ];
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, verify2fa } = useAuth();
 
   const [step, setStep] = useState(1); // 1 = credentials, 2 = 2FA
   const [email, setEmail] = useState('');
@@ -25,22 +24,19 @@ export default function Login() {
   const [twoFAInput, setTwoFAInput] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loggedUser, setLoggedUser] = useState(null);
+  const [pendingUserId, setPendingUserId] = useState(null);
 
   const handleStep1 = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const user = await login(email, password);
-      setLoggedUser(user);
-      // Check if this user has 2FA words
-      const words = twoFAWords[email.toLowerCase()];
-      if (words) {
+      const res = await login(email, password);
+      if (res.needs2FA) {
+        setPendingUserId(res.userId);
         setStep(2);
       } else {
-        // No 2FA — go directly
-        redirectUser(user);
+        redirectUser(res.user);
       }
     } catch (err) {
       setError(err.message || 'Credenciais inválidas.');
@@ -49,15 +45,17 @@ export default function Login() {
     }
   };
 
-  const handleStep2 = (e) => {
+  const handleStep2 = async (e) => {
     e.preventDefault();
     setError('');
-    const words = twoFAWords[email.toLowerCase()] || [];
-    const typed = twoFAInput.trim().toLowerCase();
-    if (words.includes(typed)) {
-      redirectUser(loggedUser);
-    } else {
-      setError('Palavra de segurança incorreta. Tente novamente.');
+    setLoading(true);
+    try {
+      const user = await verify2fa(pendingUserId, twoFAInput);
+      redirectUser(user);
+    } catch (err) {
+      setError(err.message || 'Palavra de segurança incorreta. Tente novamente.');
+    } finally {
+      setLoading(false);
     }
   };
 

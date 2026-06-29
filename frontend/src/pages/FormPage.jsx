@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api.js';
 import { entities } from '../entities.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export default function FormPage() {
   const { entity, id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const config = entities[entity];
   const emEdicao = Boolean(id);
 
@@ -70,18 +72,19 @@ export default function FormPage() {
       } else {
         await api.post(`${config.endpoint}/create`, form);
       }
-      navigate(`/admin/${entity}`);
+      navigate(`/crud/${entity}`);
     } catch (e) {
       setErro(e.response?.data?.error || e.message);
     }
   }
 
   if (!config) return <p className="muted">Entidade desconhecida.</p>;
+  if (user && user.role !== 'admin') return <p className="erro">Acesso restrito a administradores.</p>;
 
   return (
     <div className="form-wrap">
       <div className="flex align-center gap-2 mb-4">
-        <button className="btn btn-outline btn-sm" onClick={() => navigate(`/admin/${entity}`)}>← Voltar</button>
+        <button className="btn btn-outline btn-sm" onClick={() => navigate(`/crud/${entity}`)}>← Voltar</button>
         <h1 className="page-title" style={{ marginBottom: 0 }}>
           {emEdicao ? `Editar ${config.singular}` : `Novo ${config.singular}`}
         </h1>
@@ -100,7 +103,7 @@ export default function FormPage() {
             </div>
           ))}
           <div className="form-actions">
-            <button type="button" className="btn btn-outline" onClick={() => navigate(`/admin/${entity}`)}>
+            <button type="button" className="btn btn-outline" onClick={() => navigate(`/crud/${entity}`)}>
               Cancelar
             </button>
             <button type="submit" className="btn btn-primary">

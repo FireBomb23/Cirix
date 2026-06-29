@@ -1,14 +1,14 @@
-# Cirix
+# Ciryx
 
 Portal de cibersegurança / conformidade NIS2.
 
 Este repositório contém **dois projetos** que partilham a **mesma base de dados PostgreSQL** (`projeto_BD`):
 
-| Pasta        | Cadeira                      | Stack                                   |
-|--------------|------------------------------|-----------------------------------------|
-| `BD/`        | (outra cadeira)              | Django + PostgreSQL                     |
+| Pasta        | Cadeira                       | Stack                                    |
+|--------------|-------------------------------|------------------------------------------|
+| `BD/`        | (outra cadeira)               | Django + PostgreSQL                      |
 | `src/`       | Aplicações para a Internet II | Node + Express + Sequelize (backend API) |
-| `frontend/`  | Aplicações para a Internet II | React + Vite (interface gráfica)        |
+| `frontend/`  | Aplicações para a Internet II | React + Vite (interface gráfica)         |
 
 As duas aplicações ligam-se ao **mesmo** servidor PostgreSQL, pelo que os dados são partilhados.
 
@@ -16,86 +16,94 @@ As duas aplicações ligam-se ao **mesmo** servidor PostgreSQL, pelo que os dado
 
 ## Base de dados (partilhada) — pasta `database/`
 
-A estrutura das tabelas está versionada no git em [database/schema.sql](database/schema.sql) — é a **fonte oficial** partilhada entre os dois projetos. Assim, qualquer pessoa que faça `clone` consegue recriar a base `projeto_BD` exatamente igual.
-
-A forma mais simples (sem pgAdmin) é o script do backend, que cria a base e aplica o esquema de uma vez:
+A estrutura está em [database/schema.sql](database/schema.sql) — a **fonte oficial**, com tabelas + dados de exemplo.
 
 ```bash
 cd src
-npm run setup-db
+npm run setup-db      # cria a base e aplica o schema.sql (tabelas + seeds)
 ```
 
-Em alternativa, manualmente:
+Em alternativa: `createdb -U postgres projeto_BD` e `psql -U postgres -d projeto_BD -f database/schema.sql`.
 
-```bash
-# 1) criar a base de dados (uma vez)
-createdb -U postgres projeto_BD          # ou: CREATE DATABASE "projeto_BD"; no pgAdmin
+> **Porta:** confirma `DB_PORT` no `src/.env` (a instalação local pode usar **5143**; o valor por omissão é **5432**).
 
-# 2) aplicar o esquema (tabelas + dados de exemplo)
-psql -U postgres -d projeto_BD -f database/schema.sql
-```
-
-Passo a passo detalhado no pgAdmin: [database/TUTORIAL_pgAdmin.md](database/TUTORIAL_pgAdmin.md).
-
-> **Nota:** o git transfere ficheiros (código + `schema.sql`), **não** os dados que estão dentro do PostgreSQL. Para os dados serem "os mesmos", todos correm o `schema.sql` na sua própria instância (ou ligam-se a uma instância partilhada).
-
-> **Porta:** confirma a porta do teu PostgreSQL no `src/.env` (`DB_PORT`). A instalação local desta máquina usa a **5143**; o valor por omissão do PostgreSQL é **5432**.
+> As passwords são guardadas com **hash bcrypt**. Se já tens uma BD com passwords em texto simples, corre `npm run hash-passwords` (ou faz login, que converte automaticamente no 1.º acesso).
 
 ---
 
 ## Backend (Node + Express + Sequelize) — pasta `src/`
 
-Padrão **MVC**: `models/` (Sequelize), `controllers/` (lógica CRUD), `routes/` (rotas Express).
+Padrão **MVC**: `models/` (Sequelize), `controllers/` (lógica), `routes/` (rotas Express),
+`middlewares/` (autenticação JWT), `config/` (BD + JWT), `utils/` (auditoria).
 
-Entidades com CRUD completo (tabelas reais do `schema.sql`): **users, tickets, documents, service_requests**.
+### Entidades / recursos da API
 
-### Rotas (por entidade, ex: `users`)
+| Recurso             | Notas                                                            |
+|---------------------|-----------------------------------------------------------------|
+| `/users`            | utilizadores; login, 2FA, "a minha conta" (`/users/me`)         |
+| `/tickets`          | tickets de suporte + comentários (`/tickets/:id/comments`)      |
+| `/documents`        | documentos (privados por cliente ou globais)                    |
+| `/service-requests` | pedidos de serviço                                              |
+| `/articles`         | notícias/blog (leitura pública)                                 |
+| `/services`         | serviços + features (leitura pública)                           |
+| `/team`             | equipa "Sobre Nós" (leitura pública)                            |
+| `/annual-services`  | contratos/serviços anuais                                       |
+| `/audit-log`        | registo de auditoria (só admin/gestor)                          |
+| `/contact`          | formulário público (POST) + caixa de entrada (admin/gestor)     |
+| `/conversations`    | chat direto entre quaisquer utilizadores + mensagens            |
 
-| Método | URI                        | Função no controlador |
-|--------|----------------------------|-----------------------|
-| GET    | `/users`                   | `user_list`           |
-| GET    | `/users/:id`               | `user_detail`         |
-| POST   | `/users/create`            | `user_create`         |
-| PUT    | `/users/update/:id`        | `user_update`         |
-| DELETE | `/users/delete/:id`        | `user_delete`         |
+Cada entidade segue o padrão CRUD: `GET /x`, `GET /x/:id`, `POST /x/create`, `PUT /x/update/:id`, `DELETE /x/delete/:id`.
 
-(O mesmo padrão aplica-se a `/tickets`, `/documents` e `/service-requests`.)
+### Autenticação e autorização
+
+- **Login em 2 passos**: `POST /users/login` (email+password) → se tiver 2FA, `POST /users/verify-2fa` (palavra de segurança). Em sucesso devolve um **token JWT**.
+- O frontend envia o token em `Authorization: Bearer <token>` (tratado em `frontend/src/api.js`).
+- **Rotas protegidas** por `middlewares/middleware.js` (`checkToken`); ações sensíveis exigem perfil (`checkRole`). Leitura de notícias/serviços/equipa e submissão de contacto são públicas.
+- **Passwords com bcrypt** (hash no model `User`).
+- **Dados restritos**: um cliente só acede aos seus próprios tickets/documentos/pedidos/conversas (o servidor filtra pelo utilizador do token).
 
 ### Como correr
 
 ```bash
 cd src
-npm install
-# copia .env.example para .env e preenche a password da BD
-npm start          # http://localhost:3000
+npm install          # instala express, sequelize, pg, bcrypt, jsonwebtoken...
+# copia .env.example para .env e preenche password da BD + JWT_SECRET
+npm start            # http://localhost:3000
 ```
 
-Verificar o esquema real das tabelas (com o PostgreSQL ligado):
+### Utilizadores de demonstração
 
-```bash
-npm run introspect
-```
+| Email                | Password     | Perfil  | Palavra 2FA (uma) |
+|----------------------|--------------|---------|-------------------|
+| admin@ciryx.pt       | `admin123`   | admin   | segurança         |
+| manager@ciryx.pt     | `manager123` | manager | proteção          |
+| cliente@empresa.pt   | `client123`  | client  | privacidade       |
 
 ---
 
 ## Frontend (React + Vite) — pasta `frontend/`
 
-Views: **listagem**, **inserção** e **edição** para cada entidade.
-Consome a API do backend via `axios` (ver `src/api.js`).
-
-### Como correr
+- **Páginas públicas**: Início, Sobre Nós, Serviços, Notícias, Contacto (consomem a API).
+- **Área restrita** (após login): dashboard de **Admin/Gestor** e dashboard de **Cliente**.
+- **Mensagens (chat)** entre utilizadores, **A Minha Conta** (mudar nome/password), gestão de tickets/pedidos/documentos, e páginas de **CRUD genérico** em `/crud/:entity`.
 
 ```bash
 cd frontend
 npm install
-npm run dev        # http://localhost:5173
+npm run dev          # http://localhost:5173
 ```
 
-> O backend (porta 3000) tem de estar a correr para o frontend obter dados.
+> O backend (porta 3000) tem de estar a correr. Em produção define `VITE_API_URL` a apontar para o backend publicado.
+
+---
+
+## Deploy (Neon + Render + Vercel)
+
+Guia passo-a-passo em [DEPLOY.md](DEPLOY.md). Resumo: BD na **Neon**, backend no **Render** (`DATABASE_URL` + `JWT_SECRET`), frontend no **Vercel** (`VITE_API_URL`).
 
 ---
 
 ## Pré-requisitos
 
 - Node.js 18+
-- PostgreSQL com a base de dados `projeto_BD` (criada a partir de [database/schema.sql](database/schema.sql)).
+- PostgreSQL com a base `projeto_BD` (a partir de [database/schema.sql](database/schema.sql)).

@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { mockArticles, mockServices } from '../mockData.js';
+import { apiGetArticles, apiGetServices } from '../apiService.js';
 
 const serviceIcons = {
   shield: (
@@ -27,6 +28,14 @@ const serviceIcons = {
 
 export default function Home() {
   const navigate = useNavigate();
+  const [services, setServices] = useState([]);
+  const [articles, setArticles] = useState([]);
+
+  useEffect(() => {
+    apiGetServices().then(setServices).catch(() => setServices([]));
+    apiGetArticles().then((a) => setArticles(a.slice(0, 3))).catch(() => setArticles([]));
+  }, []);
+
   return (
     <>
       {/* HERO */}
@@ -65,7 +74,7 @@ export default function Home() {
             </p>
           </div>
           <div className="services-grid">
-            {mockServices.map((s) => (
+            {services.map((s) => (
               <div key={s.id} className="card">
                 <div className="card-content">
                   <div className="service-icon-box">{serviceIcons[s.icon]}</div>
@@ -209,7 +218,7 @@ export default function Home() {
             <button className="btn btn-outline-dark" onClick={() => navigate('/noticias')}>Ver Todas</button>
           </div>
           <div className="articles-grid">
-            {mockArticles.map((a) => (
+            {articles.map((a) => (
               <div key={a.id} className="card">
                 <div className="article-img">
                   <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>

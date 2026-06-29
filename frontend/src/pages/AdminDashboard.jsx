@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import {
-  mockArticles, mockTickets, mockAnnualServices, mockAuditLog, mockDocuments,
-  mockClients, mockRiskAssessment, mockAtivos, mockIncidentes, mockPenTests,
-} from '../mockData.js';
-import { apiGetUsers, apiCreateUser, apiToggleUserActive, apiGetTickets, apiUpdateTicketStatus } from '../apiService.js';
+  apiGetUsers, apiCreateUser, apiToggleUserActive,
+  apiGetTickets, apiUpdateTicketStatus, apiGetTicketComments, apiCreateTicketComment,
+  apiGetArticles, apiCreateArticle, apiUpdateArticle, apiDeleteArticle,
+  apiGetDocuments, apiCreateDocument, apiGetDocument, apiGetAnnualServices, apiGetAuditLog,
+  apiGetMessages, apiMarkMessageRead, apiReplyMessage,
+  apiGetConversations, apiEnsureConversation, apiGetConversationMessages, apiSendConversationMessage,
+  apiUpdateMe,
+} from '../apiService.js';
 
 const ShieldIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="28" height="28" style={{ color: 'var(--yellow)' }}>
@@ -13,17 +17,7 @@ const ShieldIcon = () => (
   </svg>
 );
 
-const mockMessages = [
-  { id: 'm1', name: 'Tech Solutions Lda.', email: 'info@techsolutions.pt', company: 'Tech Solutions', message: 'Gostaríamos de agendar uma avaliação de maturidade.', date: '2026-03-15', read: false },
-  { id: 'm2', name: 'João Costa', email: 'joao@startup.pt', company: 'Startup Inovação', message: 'Temos interesse nos serviços de PenTest.', date: '2026-03-14', read: true },
-  { id: 'm3', name: 'Maria Silva', email: 'maria@hospital.pt', company: 'Hospital Central', message: 'Precisamos de apoio na conformidade NIS2.', date: '2026-03-13', read: true },
-];
-
-const initialUsers = [
-  { id: '1', name: 'João Silva', email: 'admin@ciryx.pt', role: 'admin', active: true, phone: '+351 910 111 222' },
-  { id: '2', name: 'Maria Santos', email: 'manager@ciryx.pt', role: 'manager', active: true, phone: '+351 910 333 444' },
-  { id: '3', name: 'Carlos Oliveira', email: 'cliente@empresa.pt', role: 'client', active: true, phone: '+351 912 345 678' },
-];
+// Mensagens, utilizadores, artigos, etc. sao carregados da API (ver useEffect).
 
 const BLANK_USER_FORM = {
   role: 'client', name: '', email: '', phone: '', password: '',
@@ -73,18 +67,30 @@ function RiskGauge({ score }) {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { user, logout, showToast } = useAuth();
+  const { user, logout, showToast, applyUser } = useAuth();
   const [page, setPage] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [accName, setAccName] = useState(user?.name || '');
+  const [accPassword, setAccPassword] = useState('');
 
-  const [articles, setArticles] = useState(mockArticles);
-  const [tickets, setTickets] = useState(mockTickets);
-  const [annualServices] = useState(mockAnnualServices);
-  const [messages, setMessages] = useState(mockMessages);
-  const [users, setUsers] = useState(initialUsers);
-  const [clients, setClients] = useState(mockClients);
+  const [articles, setArticles] = useState([]);
+  const [tickets, setTickets] = useState([]);
+  const [annualServices, setAnnualServices] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [documents, setDocuments] = useState([]);
+  const [auditLog, setAuditLog] = useState([]);
+
+  // Chat direto (estilo WhatsApp) com qualquer utilizador
+  const [chatPeer, setChatPeer] = useState(null);
+  const [chatConv, setChatConv] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [unreadPeers, setUnreadPeers] = useState(() => new Set());
 
   const [activeMsg, setActiveMsg] = useState(null);
+  const [contactReply, setContactReply] = useState('');
   const [activeTicket, setActiveTicket] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [showArticleModal, setShowArticleModal] = useState(false);
@@ -97,7 +103,7 @@ export default function AdminDashboard() {
 
   const isAdmin = user?.role === 'admin';
 
-  // Carregar dados reais da API
+  // Carregar todos os dados reais da API
   useEffect(() => {
     apiGetUsers()
       .then(apiUsers => {
@@ -106,21 +112,22 @@ export default function AdminDashboard() {
           role: u.role, company: u.company || '', phone: u.phone || '', active: u.active,
         }));
         setUsers(norm);
-        const apiClients = norm.filter(u => u.role === 'client').map(u => {
-          const ex = mockClients.find(c => c.email === u.email);
-          return ex ? { ...ex, ...u } : { ...u, sector: '', createdAt: '', securityContact: {}, permanentContact: {} };
-        });
-        if (apiClients.length > 0) setClients(apiClients);
+        setClients(norm.filter(u => u.role === 'client').map(u => ({
+          ...u, sector: '', createdAt: '', securityContact: {}, permanentContact: {},
+        })));
       })
-      .catch(() => {});
+      .catch((e) => { if (e.response?.status !== 401) showToast('Não foi possível carregar alguns dados.', 'error'); });
 
-    apiGetTickets()
-      .then(t => { if (t.length > 0) setTickets(t); })
-      .catch(() => {});
+    apiGetTickets().then(setTickets).catch(() => {});
+    apiGetArticles().then(setArticles).catch(() => {});
+    apiGetAnnualServices().then(setAnnualServices).catch(() => {});
+    apiGetDocuments().then(setDocuments).catch(() => {});
+    apiGetAuditLog().then(setAuditLog).catch(() => {});
+    apiGetMessages().then(setMessages).catch(() => {});
   }, []);
 
   const navSections = [
-    { label: 'GERAL', items: [{ id: 'dashboard', label: 'Dashboard', icon: '📊' }, { id: 'mensagens', label: 'Mensagens', icon: '📬' }] },
+    { label: 'GERAL', items: [{ id: 'dashboard', label: 'Dashboard', icon: '📊' }, { id: 'mensagens', label: 'Mensagens', icon: '💬' }, { id: 'contactos', label: 'Contactos', icon: '📬' }, { id: 'conta', label: 'A Minha Conta', icon: '👤' }] },
     {
       label: 'GESTÃO', items: [
         { id: 'clientes', label: 'Clientes', icon: '🏢' },
@@ -140,12 +147,156 @@ export default function AdminDashboard() {
 
   const go = (p) => { setPage(p); setSidebarOpen(false); setSelectedClient(null); };
 
-  const ticketReply = (isAdminReply = true) => {
+  const ticketReply = async () => {
     if (!replyText.trim() || !activeTicket) return;
-    const comment = { id: 'c' + Date.now(), author: isAdminReply ? user.name : 'Cliente', isAdmin: isAdminReply, text: replyText, date: new Date().toISOString() };
-    setTickets(prev => prev.map(t => t.id === activeTicket.id ? { ...t, comments: [...(t.comments || []), comment] } : t));
-    setActiveTicket(prev => ({ ...prev, comments: [...(prev.comments || []), comment] }));
+    try {
+      const comment = await apiCreateTicketComment(activeTicket.id, user.id, replyText);
+      setTickets(prev => prev.map(t => t.id === activeTicket.id ? { ...t, comments: [...(t.comments || []), comment] } : t));
+      setActiveTicket(prev => ({ ...prev, comments: [...(prev.comments || []), comment] }));
+      setReplyText('');
+    } catch {
+      showToast('Erro ao enviar resposta.', 'error');
+    }
+  };
+
+  // Abrir conversa de um ticket e carregar os comentarios reais da API
+  const openTicket = async (t) => {
+    setActiveTicket(t);
     setReplyText('');
+    try {
+      const comments = await apiGetTicketComments(t.id);
+      setActiveTicket(prev => (prev && prev.id === t.id ? { ...prev, comments } : prev));
+      setTickets(prev => prev.map(x => x.id === t.id ? { ...x, comments } : x));
+    } catch { /* ignore */ }
+  };
+
+  // ─── CHAT (mensagens diretas) ───────────────────────────────────────────────
+  const openChat = async (peer) => {
+    setChatPeer(peer);
+    setChatConv(null);
+    setChatMessages([]);
+    setChatInput('');
+    try {
+      const conv = await apiEnsureConversation(user.id, peer.id);
+      setChatConv(conv);
+      const msgs = await apiGetConversationMessages(conv.id);
+      setChatMessages(msgs);
+      localStorage.setItem('ciryx_seen_' + conv.id, new Date().toISOString());
+      setUnreadPeers(prev => { const n = new Set(prev); n.delete(String(peer.id)); return n; });
+    } catch {
+      showToast('Erro ao abrir conversa.', 'error');
+    }
+  };
+
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || !chatConv) return;
+    try {
+      const msg = await apiSendConversationMessage(chatConv.id, user.id, chatInput);
+      setChatMessages(prev => [...prev, msg]);
+      setChatInput('');
+    } catch {
+      showToast('Erro ao enviar mensagem.', 'error');
+    }
+  };
+
+  const reloadChat = async () => {
+    if (!chatConv) return;
+    try { setChatMessages(await apiGetConversationMessages(chatConv.id)); } catch { /* ignore */ }
+  };
+
+  // Deteta conversas com mensagens novas do outro lado (badge de nao lidas)
+  const refreshUnread = async () => {
+    if (!user) return;
+    try {
+      const convs = await apiGetConversations(user.id);
+      const s = new Set();
+      convs.forEach(c => {
+        const other = (c.participant1 && c.participant1.id !== String(user.id)) ? c.participant1 : c.participant2;
+        if (!other || !c.lastMessageAt || !c.lastSenderId || c.lastSenderId === String(user.id)) return;
+        const seen = localStorage.getItem('ciryx_seen_' + c.id);
+        if (!seen || new Date(c.lastMessageAt) > new Date(seen)) s.add(other.id);
+      });
+      setUnreadPeers(s);
+    } catch { /* ignore */ }
+  };
+
+  useEffect(() => {
+    refreshUnread();
+    const t = setInterval(refreshUnread, 8000);
+    return () => clearInterval(t);
+  }, []); // eslint-disable-line
+
+  useEffect(() => {
+    if (!chatConv) return;
+    const t = setInterval(async () => {
+      try { setChatMessages(await apiGetConversationMessages(chatConv.id)); } catch { /* ignore */ }
+    }, 5000);
+    return () => clearInterval(t);
+  }, [chatConv]);
+
+  // ─── CONTACTOS (Caixa de Entrada do formulario publico) ─────────────────────
+  const openContact = (m) => {
+    setActiveMsg(m);
+    setContactReply(m.reply || '');
+    setMessages(prev => prev.map(x => x.id === m.id ? { ...x, read: true } : x));
+    apiMarkMessageRead(m.id).catch(() => {});
+  };
+
+  const sendContactReply = async () => {
+    if (!contactReply.trim() || !activeMsg) return;
+    try {
+      const updated = await apiReplyMessage(activeMsg.id, contactReply);
+      setMessages(prev => prev.map(x => x.id === activeMsg.id ? updated : x));
+      setActiveMsg(updated);
+      showToast('Resposta guardada.');
+    } catch {
+      showToast('Erro ao guardar resposta.', 'error');
+    }
+  };
+
+  const saveAccount = async (e) => {
+    e.preventDefault();
+    try {
+      const updated = await apiUpdateMe({ name: accName, password: accPassword || undefined });
+      applyUser(updated);
+      setAccPassword('');
+      showToast('Conta atualizada com sucesso!');
+    } catch (err) {
+      showToast('Erro ao atualizar conta: ' + (err.response?.data?.error || err.message), 'error');
+    }
+  };
+
+  // ─── Documentos: download e upload reais (base64) ───────────────────────────
+  const fileToBase64 = (file) => new Promise((resolve, reject) => {
+    const r = new FileReader(); r.onload = () => resolve(r.result); r.onerror = reject; r.readAsDataURL(file);
+  });
+
+  const downloadDoc = async (d) => {
+    try {
+      const full = d.fileData ? d : await apiGetDocument(d.id);
+      if (!full.fileData) { showToast('Este documento não tem ficheiro guardado.', 'error'); return; }
+      const a = document.createElement('a');
+      a.href = full.fileData; a.download = full.name;
+      document.body.appendChild(a); a.click(); a.remove();
+    } catch { showToast('Erro ao transferir o documento.', 'error'); }
+  };
+
+  const uploadClientDoc = async (cid, file, category = 'Documentação') => {
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) { showToast('Ficheiro demasiado grande (máx. 8MB).', 'error'); return; }
+    try {
+      const file_data = await fileToBase64(file);
+      await apiCreateDocument({
+        name: file.name,
+        file_type: (file.name.split('.').pop() || 'FILE').toUpperCase(),
+        file_size: `${(file.size / 1024).toFixed(0)} KB`,
+        file_data, category, visibility: 'client', client_id: cid,
+      });
+      setDocuments(await apiGetDocuments());
+      showToast('Documento carregado.');
+    } catch (err) {
+      showToast('Erro ao carregar documento: ' + (err.response?.data?.error || err.message), 'error');
+    }
   };
 
   const resolveTicket = async (id) => {
@@ -161,19 +312,28 @@ export default function AdminDashboard() {
     setShowArticleModal(true);
   };
 
-  const saveArticle = (e) => {
+  const saveArticle = async (e) => {
     e.preventDefault();
-    if (editArticle) {
-      setArticles(prev => prev.map(a => a.id === editArticle.id ? { ...a, ...articleForm } : a));
-      showToast('Artigo atualizado.');
-    } else {
-      setArticles(prev => [{ id: String(Date.now()), ...articleForm, date: new Date().toISOString().split('T')[0] }, ...prev]);
-      showToast('Artigo criado.');
+    try {
+      if (editArticle) {
+        const upd = await apiUpdateArticle(editArticle.id, articleForm);
+        setArticles(prev => prev.map(a => a.id === editArticle.id ? upd : a));
+        showToast('Artigo atualizado.');
+      } else {
+        const created = await apiCreateArticle(articleForm);
+        setArticles(prev => [created, ...prev]);
+        showToast('Artigo criado.');
+      }
+      setShowArticleModal(false);
+    } catch (err) {
+      showToast('Erro ao guardar artigo: ' + (err.response?.data?.error || err.message), 'error');
     }
-    setShowArticleModal(false);
   };
 
-  const deleteArticle = (id) => { setArticles(prev => prev.filter(a => a.id !== id)); showToast('Artigo removido.'); };
+  const deleteArticle = async (id) => {
+    try { await apiDeleteArticle(id); setArticles(prev => prev.filter(a => a.id !== id)); showToast('Artigo removido.'); }
+    catch { showToast('Erro ao remover artigo.', 'error'); }
+  };
 
   const toggleUserActive = async (id) => {
     const u = users.find(x => x.id === id);
@@ -197,35 +357,34 @@ export default function AdminDashboard() {
 
   const saveUser = async (e) => {
     e.preventDefault();
-    const tempId = String(Date.now());
-    const newUser = { id: tempId, name: userForm.name, email: userForm.email, phone: userForm.phone, role: userForm.role, active: true };
-    setUsers(prev => [...prev, newUser]);
-    if (userForm.role === 'client') {
-      setClients(prev => [...prev, {
-        ...newUser, company: '', sector: '', createdAt: new Date().toISOString().split('T')[0],
-        securityContact: { name: userForm.securityName, email: userForm.securityEmail, phone: userForm.securityPhone },
-        permanentContact: { name: userForm.contactName, email: userForm.contactEmail, phone: userForm.contactPhone },
-      }]);
-    }
-    setShowUserModal(false);
-    showToast(`${userForm.role === 'client' ? 'Cliente' : 'Gestor'} criado com sucesso!`);
     try {
       const created = await apiCreateUser({ name: userForm.name, email: userForm.email, password: userForm.password, role: userForm.role, company: userForm.role === 'client' ? '' : 'Ciryx' });
-      const realId = String(created.id);
-      setUsers(prev => prev.map(u => u.id === tempId ? { ...u, id: realId } : u));
-      if (userForm.role === 'client') setClients(prev => prev.map(c => c.id === tempId ? { ...c, id: realId } : c));
-    } catch {}
+      const nu = { id: String(created.id), name: created.name, email: created.email, phone: '', role: created.role, company: created.company || '', active: created.active };
+      setUsers(prev => [...prev, nu]);
+      if (created.role === 'client') {
+        setClients(prev => [...prev, {
+          ...nu, sector: '', createdAt: new Date().toISOString().split('T')[0],
+          securityContact: { name: userForm.securityName, email: userForm.securityEmail, phone: userForm.securityPhone },
+          permanentContact: { name: userForm.contactName, email: userForm.contactEmail, phone: userForm.contactPhone },
+        }]);
+      }
+      setShowUserModal(false);
+      showToast(`${created.role === 'client' ? 'Cliente' : 'Gestor'} criado com sucesso!`);
+    } catch (err) {
+      showToast('Erro ao criar utilizador: ' + (err.response?.data?.error || err.message), 'error');
+    }
   };
 
   const totalPageTitle = navSections.flatMap(s => s.items).find(i => i.id === page)?.label || 'Dashboard';
 
   // ─── CLIENT DETAIL ────────────────────────────────────────────────────────
   const ClientDetail = ({ client }) => {
-    const risco = mockRiskAssessment[client.id];
-    const ativos = mockAtivos[client.id] || [];
-    const incidentes = mockIncidentes[client.id] || [];
-    const penTests = mockPenTests[client.id] || [];
-    const docs = mockDocuments.filter(d => d.clientId === client.id);
+    // Sem tabelas na API partilhada para risco/ativos/incidentes/pentests -> estado vazio.
+    const risco = null;
+    const ativos = [];
+    const incidentes = [];
+    const penTests = [];
+    const docs = documents.filter(d => d.clientId === client.id);
 
     const TABS = [
       { id: 'risco', label: 'Avaliação de Risco' }, { id: 'ativos', label: 'Ativos Tecnológicos' },
@@ -341,7 +500,7 @@ export default function AdminDashboard() {
               <div className="table-scroll">
                 <table>
                   <thead><tr><th>Nome</th><th>Tipo</th><th>Tamanho</th><th>Data</th><th>Categoria</th><th>Ação</th></tr></thead>
-                  <tbody>{docs.map(d => <tr key={d.id}><td style={{ fontWeight: 500 }}>{d.name}</td><td><span className="badge badge-blue">{d.type}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.size}</td><td style={{ color: 'var(--slate-500)' }}>{d.uploadDate}</td><td><span className="badge badge-gray">{d.category}</span></td><td><button className="btn btn-sm btn-outline-dark" onClick={() => showToast('Download (demo)')}>⬇</button></td></tr>)}</tbody>
+                  <tbody>{docs.map(d => <tr key={d.id}><td style={{ fontWeight: 500 }}>{d.name}</td><td><span className="badge badge-blue">{d.type}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.size}</td><td style={{ color: 'var(--slate-500)' }}>{d.uploadDate}</td><td><span className="badge badge-gray">{d.category}</span></td><td><button className="btn btn-sm btn-outline-dark" onClick={() => downloadDoc(d)}>⬇</button></td></tr>)}</tbody>
                 </table>
               </div>
             ) : <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--slate-400)' }}>Nenhum documento.</div>}
@@ -357,7 +516,7 @@ export default function AdminDashboard() {
                     <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{p.titulo}</div>
                     <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--slate-500)' }}><span className="badge badge-blue">{p.tipo}</span><span>{p.consultor} • {p.data}</span></div>
                   </div>
-                  <button className="btn btn-sm btn-outline-dark" onClick={() => showToast('Download (demo)')}>⬇ Relatório PDF</button>
+                  <button className="btn btn-sm btn-outline-dark" onClick={() => showToast('Relatório não disponível.')}>⬇ Relatório PDF</button>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   {[['Crítico', p.critico, '#ef4444', '#fef2f2'], ['Alto', p.alto, '#f97316', '#fff7ed'], ['Médio', p.medio, '#eab308', '#fefce8'], ['Baixo', p.baixo, 'var(--slate-500)', 'var(--slate-50)']].map(([label, count, color, bg]) => (
@@ -376,8 +535,11 @@ export default function AdminDashboard() {
           <div className="table-wrap" style={{ padding: '2rem', textAlign: 'center' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📎</div>
             <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Outras Evidências</div>
-            <div style={{ color: 'var(--slate-400)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>Sem evidências adicionais submetidas.</div>
-            <button className="btn btn-primary btn-sm" onClick={() => showToast('Upload disponível após integração.')}>+ Carregar Evidência</button>
+            <div style={{ color: 'var(--slate-400)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>Carregue um documento de evidência para este cliente.</div>
+            <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer' }}>
+              + Carregar Evidência
+              <input type="file" style={{ display: 'none' }} onChange={e => { uploadClientDoc(client.id, e.target.files[0], 'Outros'); e.target.value = ''; }} />
+            </label>
           </div>
         )}
       </div>
@@ -397,6 +559,14 @@ export default function AdminDashboard() {
               {section.items.map(item => <button key={item.id} className={`sidebar-link${page === item.id ? ' active' : ''}`} onClick={() => go(item.id)}><span>{item.icon}</span> {item.label}</button>)}
             </div>
           ))}
+          {isAdmin && (
+            <div>
+              <div className="sidebar-section">BASE DE DADOS (API)</div>
+              {[['users', '👥', 'Utilizadores'], ['tickets', '🎫', 'Tickets'], ['documents', '📄', 'Documentos'], ['service-requests', '📋', 'Pedidos']].map(([ent, icon, label]) => (
+                <button key={ent} className="sidebar-link" onClick={() => navigate(`/crud/${ent}`)}><span>{icon}</span> {label}</button>
+              ))}
+            </div>
+          )}
         </nav>
         <div className="sidebar-footer"><button className="btn btn-outline btn-sm w-full" onClick={() => { logout(); navigate('/'); }}>Terminar Sessão</button></div>
       </aside>
@@ -449,13 +619,68 @@ export default function AdminDashboard() {
             </>
           )}
 
+          {page === 'conta' && (
+            <div className="table-wrap" style={{ maxWidth: '520px', padding: '1.5rem' }}>
+              <div className="table-header" style={{ padding: 0, border: 'none', marginBottom: '1rem' }}><h3>A Minha Conta</h3></div>
+              <form onSubmit={saveAccount}>
+                <div className="form-group"><label className="label">Nome</label><input className="input" value={accName} onChange={e => setAccName(e.target.value)} required /></div>
+                <div className="form-group"><label className="label">Email</label><input className="input" value={user?.email || ''} disabled /></div>
+                <div className="form-group"><label className="label">Perfil</label><input className="input" value={user?.role || ''} disabled /></div>
+                <div className="form-group"><label className="label">Nova password</label><input className="input" type="password" value={accPassword} onChange={e => setAccPassword(e.target.value)} placeholder="Deixa vazio para manter a atual" /></div>
+                <button className="btn btn-primary" type="submit">Guardar alterações</button>
+              </form>
+            </div>
+          )}
+
           {page === 'mensagens' && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem', height: '600px' }}>
               <div className="table-wrap" style={{ overflow: 'auto' }}>
+                <div className="table-header"><h3>Utilizadores</h3></div>
+                {users.filter(u => String(u.id) !== String(user.id)).map(u => (
+                  <div key={u.id} onClick={() => openChat(u)} style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid var(--slate-100)', cursor: 'pointer', background: chatPeer?.id === u.id ? 'var(--slate-50)' : 'white' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>{unreadPeers.has(String(u.id)) && <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#ef4444', marginRight: 6 }} />}{u.name}</span>
+                      <span className={`badge ${u.role === 'admin' ? 'badge-red' : u.role === 'manager' ? 'badge-blue' : 'badge-yellow'}`} style={{ fontSize: '0.65rem' }}>{u.role === 'admin' ? 'Admin' : u.role === 'manager' ? 'Gestor' : 'Cliente'}</span>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>{u.email}</div>
+                  </div>
+                ))}
+                {users.filter(u => String(u.id) !== String(user.id)).length === 0 && <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--slate-400)' }}>Sem outros utilizadores.</div>}
+              </div>
+              <div className="table-wrap" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                {chatPeer ? (
+                  <>
+                    <div className="table-header"><h3>{chatPeer.name}</h3><button className="btn btn-outline-dark btn-sm" onClick={reloadChat}>↻ Atualizar</button></div>
+                    <div className="ticket-messages" style={{ flex: 1, overflow: 'auto' }}>
+                      {chatMessages.length === 0 && <div style={{ textAlign: 'center', color: 'var(--slate-400)', padding: '2rem' }}>Sem mensagens ainda. Escreva a primeira!</div>}
+                      {chatMessages.map(mm => {
+                        const mine = mm.senderId === String(user.id);
+                        return (
+                          <div key={mm.id} style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
+                            <div className={`msg-bubble ${mine ? 'admin-msg' : 'client-msg'}`}>{mm.text}</div>
+                            <div className="msg-meta" style={{ textAlign: mine ? 'right' : 'left' }}>{mm.senderName} • {new Date(mm.date).toLocaleString('pt')}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="ticket-reply">
+                      <input className="input" value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Escrever mensagem..." style={{ flex: 1 }} onKeyDown={e => e.key === 'Enter' && sendChatMessage()} />
+                      <button className="btn btn-primary" onClick={sendChatMessage}>Enviar</button>
+                    </div>
+                  </>
+                ) : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--slate-400)' }}>Selecione um utilizador para conversar</div>}
+              </div>
+            </div>
+          )}
+
+          {page === 'contactos' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem', height: '600px' }}>
+              <div className="table-wrap" style={{ overflow: 'auto' }}>
                 <div className="table-header"><h3>Caixa de Entrada</h3></div>
+                {messages.length === 0 && <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--slate-400)' }}>Sem contactos.</div>}
                 {messages.map(m => (
-                  <div key={m.id} style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid var(--slate-100)', cursor: 'pointer', background: activeMsg?.id === m.id ? 'var(--slate-50)' : 'white' }} onClick={() => { setActiveMsg(m); setMessages(prev => prev.map(x => x.id === m.id ? { ...x, read: true } : x)); }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ fontWeight: m.read ? 400 : 600, fontSize: '0.875rem' }}>{m.name}</span>{!m.read && <span className="badge badge-yellow" style={{ fontSize: '0.65rem' }}>Novo</span>}</div>
+                  <div key={m.id} style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid var(--slate-100)', cursor: 'pointer', background: activeMsg?.id === m.id ? 'var(--slate-50)' : 'white' }} onClick={() => openContact(m)}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontWeight: m.read ? 400 : 600, fontSize: '0.875rem' }}>{m.name}</span>{m.reply ? <span className="badge badge-green" style={{ fontSize: '0.65rem' }}>Respondido</span> : (!m.read && <span className="badge badge-yellow" style={{ fontSize: '0.65rem' }}>Novo</span>)}</div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>{m.company}</div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--slate-400)', marginTop: '0.25rem', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{m.message}</div>
                   </div>
@@ -469,9 +694,15 @@ export default function AdminDashboard() {
                       <div style={{ fontSize: '0.875rem', color: 'var(--slate-500)' }}>{activeMsg.email} • {activeMsg.company} • {activeMsg.date}</div>
                     </div>
                     <div style={{ padding: '1.5rem' }}><p style={{ fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--slate-700)' }}>{activeMsg.message}</p></div>
-                    <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--slate-200)', display: 'flex', gap: '0.75rem' }}>
-                      <input className="input" placeholder={`Responder a ${activeMsg.email}...`} style={{ flex: 1 }} readOnly onClick={() => showToast('Email em desenvolvimento (demo)')} />
-                      <button className="btn btn-primary" onClick={() => showToast('Resposta enviada (demo)')}>Responder</button>
+                    {activeMsg.reply && (
+                      <div style={{ margin: '0 1.5rem 0.5rem', padding: '0.75rem 1rem', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '0.5rem' }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Resposta {activeMsg.repliedAt ? `• ${activeMsg.repliedAt}` : ''}</div>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--slate-700)', whiteSpace: 'pre-wrap' }}>{activeMsg.reply}</div>
+                      </div>
+                    )}
+                    <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--slate-200)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <textarea className="input" rows={3} value={contactReply} onChange={e => setContactReply(e.target.value)} placeholder={`Escrever resposta a ${activeMsg.email}...`} />
+                      <button className="btn btn-primary" style={{ alignSelf: 'flex-end' }} onClick={sendContactReply} disabled={!contactReply.trim()}>{activeMsg.reply ? 'Atualizar resposta' : 'Responder'}</button>
                     </div>
                   </>
                 ) : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--slate-400)' }}>Selecione uma mensagem</div>}
@@ -555,13 +786,14 @@ export default function AdminDashboard() {
 
           {page === 'documentos' && (
             <div className="table-wrap">
-              <div className="table-header"><h3>Documentos ({mockDocuments.length})</h3><button className="btn btn-primary btn-sm" onClick={() => showToast('Upload (demo)')}>+ Upload</button></div>
+              <div className="table-header"><h3>Documentos ({documents.length})</h3></div>
               <div className="table-scroll">
                 <table>
                   <thead><tr><th>Nome</th><th>Tipo</th><th>Tamanho</th><th>Data</th><th>Categoria</th><th>Cliente</th></tr></thead>
-                  <tbody>{mockDocuments.map(d => (
-                    <tr key={d.id}><td style={{ fontWeight: 500 }}>{d.name}</td><td><span className="badge badge-blue">{d.type}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.size}</td><td style={{ color: 'var(--slate-500)' }}>{d.uploadDate}</td><td><span className="badge badge-gray">{d.category}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.clientId ? 'Carlos Oliveira' : 'Público'}</td></tr>
-                  ))}</tbody>
+                  <tbody>{documents.map(d => (
+                    <tr key={d.id}><td style={{ fontWeight: 500 }}>{d.name}</td><td><span className="badge badge-blue">{d.type}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.size}</td><td style={{ color: 'var(--slate-500)' }}>{d.uploadDate}</td><td><span className="badge badge-gray">{d.category}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.clientName || 'Público'}</td></tr>
+                  ))}
+                  {documents.length === 0 && <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--slate-400)', padding: '2rem' }}>Sem documentos.</td></tr>}</tbody>
                 </table>
               </div>
             </div>
@@ -581,7 +813,7 @@ export default function AdminDashboard() {
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       {t.status !== 'resolved' && <button className="btn btn-success btn-sm" onClick={() => resolveTicket(t.id)}>✓ Resolver</button>}
-                      <button className="btn btn-outline-dark btn-sm" onClick={() => { setActiveTicket(t); setReplyText(''); }}>Conversa</button>
+                      <button className="btn btn-outline-dark btn-sm" onClick={() => openTicket(t)}>Conversa</button>
                     </div>
                   </div>
                 </div>
@@ -610,8 +842,8 @@ export default function AdminDashboard() {
 
           {page === 'auditoria' && isAdmin && (
             <div className="table-wrap">
-              <div className="table-header"><h3>Log de Auditoria</h3></div>
-              {mockAuditLog.map(entry => (
+              <div className="table-header"><h3>Log de Auditoria ({auditLog.length})</h3></div>
+              {auditLog.map(entry => (
                 <div key={entry.id} className="audit-item">
                   {severityDot(entry.severity)}
                   <div style={{ flex: 1 }}>

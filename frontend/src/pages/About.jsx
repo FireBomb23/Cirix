@@ -1,14 +1,15 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const team = [
-  { name: 'Dr. Miguel Ferreira', role: 'CEO & Fundador', initials: 'MF' },
-  { name: 'Eng. Ana Costa', role: 'Diretora Técnica', initials: 'AC' },
-  { name: 'João Silva', role: 'Consultor Sénior', initials: 'JS' },
-  { name: 'Maria Santos', role: 'Especialista NIS2', initials: 'MS' },
-];
+import { apiGetTeam } from '../apiService.js';
 
 export default function About() {
   const navigate = useNavigate();
+  const [team, setTeam] = useState([]);
+
+  useEffect(() => {
+    apiGetTeam().then(setTeam).catch(() => setTeam([]));
+  }, []);
+
   return (
     <>
       <div className="page-hero">

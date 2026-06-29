@@ -8,6 +8,8 @@ import Contact from './pages/Contact.jsx';
 import Login from './pages/Login.jsx';
 import ClientDashboard from './pages/ClientDashboard.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import ListPage from './pages/ListPage.jsx';
+import FormPage from './pages/FormPage.jsx';
 import { useAuth } from './context/AuthContext.jsx';
 
 function RequireAuth({ children, role }) {
@@ -40,6 +42,17 @@ export default function App() {
       } />
       <Route path="/admin/:section" element={
         <RequireAuth role="admin"><AdminDashboard /></RequireAuth>
+      } />
+
+      {/* Gestao de dados generica (CRUD via API): listagem, insercao, edicao e eliminacao por entidade */}
+      <Route path="/crud/:entity" element={
+        <RequireAuth role="admin"><ListPage /></RequireAuth>
+      } />
+      <Route path="/crud/:entity/novo" element={
+        <RequireAuth role="admin"><FormPage /></RequireAuth>
+      } />
+      <Route path="/crud/:entity/editar/:id" element={
+        <RequireAuth role="admin"><FormPage /></RequireAuth>
       } />
 
       <Route path="*" element={<Navigate to="/" replace />} />

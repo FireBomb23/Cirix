@@ -5,10 +5,13 @@ const INCLUDE_USERS = [
   { model: User, as: 'responsavel', attributes: ['id', 'name'] },
 ];
 
+const isClient = (req) => req.user && req.user.role === 'client';
+
 // GET /service-requests
 exports.servicerequest_list = async (req, res) => {
   try {
-    const pedidos = await ServiceRequest.findAll({ include: INCLUDE_USERS, order: [['id', 'ASC']] });
+    const where = isClient(req) ? { client_id: req.user.id } : {};
+    const pedidos = await ServiceRequest.findAll({ where, include: INCLUDE_USERS, order: [['id', 'ASC']] });
     res.json(pedidos);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -20,6 +23,9 @@ exports.servicerequest_detail = async (req, res) => {
   try {
     const pedido = await ServiceRequest.findByPk(req.params.id, { include: INCLUDE_USERS });
     if (!pedido) return res.status(404).json({ error: 'Pedido nao encontrado' });
+    if (isClient(req) && pedido.client_id !== req.user.id) {
+      return res.status(403).json({ error: 'Sem acesso a este pedido.' });
+    }
     res.json(pedido);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -29,7 +35,11 @@ exports.servicerequest_detail = async (req, res) => {
 // POST /service-requests/create
 exports.servicerequest_create = async (req, res) => {
   try {
-    const { title, description, status, client_id, assigned_to, request_date } = req.body;
+    let { title, description, status, client_id, assigned_to, request_date } = req.body;
+    if (isClient(req)) client_id = req.user.id; // cliente so cria pedidos para si proprio
+    if (!title || !client_id) {
+      return res.status(400).json({ error: 'Título e cliente são obrigatórios.' });
+    }
     const novo = await ServiceRequest.create({
       title, description, status, client_id,
       assigned_to: assigned_to || null,

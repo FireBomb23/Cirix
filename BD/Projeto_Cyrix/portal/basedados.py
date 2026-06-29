@@ -1,8 +1,15 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import bcrypt
+# Persistencia via SQL (psycopg2), sem ORM.
+
+# ==============================================================================
+# LIGACAO A BASE DE DADOS (PostgreSQL / pgAdmin)
+# Persistencia feita exclusivamente com SQL (psycopg2), sem ORM do Django.
+# ==============================================================================
 
 def obter_conexao():
-    """Estabelece a ligação direta com a base de dados PostgreSQL do pgAdmin"""
+    """Estabelece a ligacao direta com a base de dados PostgreSQL do pgAdmin"""
     return psycopg2.connect(
         dbname="projeto_BD",
         user="postgres",
@@ -11,8 +18,9 @@ def obter_conexao():
         port="5432"
     )
 
+
 def executar_consulta(query, params=None):
-    """Executa consultas SELECT e mapeia os resultados para dicionários"""
+    """Executa consultas SELECT e mapeia os resultados para dicionarios"""
     conn = obter_conexao()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
@@ -25,209 +33,228 @@ def executar_consulta(query, params=None):
         cursor.close()
         conn.close()
 
+
+def executar_comando(query, params=None):
+    """Executa comandos de escrita (INSERT/UPDATE/DELETE) com commit"""
+    conn = obter_conexao()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(query, params)
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Erro ao executar comando SQL: {e}")
+        conn.rollback()
+        return False
+    finally:
+        cursor.close()
+        conn.close()
+
+
 # ==============================================================================
-# REQUISITOS OBRIGATÓRIOS DA FICHA 9 (Métricas do Dashboard)
+# MAPEAMENTO DE PERFIS (role na BD  <->  perfil apresentado no frontend)
+# A tabela users guarda role: 'admin' | 'manager' | 'client'.
+# ==============================================================================
+
+ROLE_PARA_PERFIL = {
+    'admin': 'Administrador',
+    'manager': 'Colaborador',
+    'client': 'Cliente',
+}
+PERFIL_PARA_ROLE = {v: k for k, v in ROLE_PARA_PERFIL.items()}
+
+
+# ==============================================================================
+# REQUISITOS OBRIGATORIOS DA FICHA 9 (Metricas do Dashboard)
+# Todas as consultas usam o esquema real (users, tickets, documents,
+# annual_services) e devolvem aliases iguais aos campos esperados no template.
 # ==============================================================================
 
 def obter_conformidade_nis2():
-    """Ex 1: Número de clientes por estado de conformidade NIS2"""
-    # Ajusta os nomes das colunas/tabelas conforme a tua base de dados real
+    """Ex 1: Numero de contratos de conformidade NIS2 por estado."""
     query = """
-        SELECT estado_nis2, COUNT(*) as total 
-        FROM clientes 
-        GROUP BY estado_nis2;
+        SELECT status AS estado_nis2,
+               COUNT(*) AS total
+        FROM annual_services
+        WHERE service_type = 'nis-compliance'
+        GROUP BY status
+        ORDER BY total DESC;
     """
     return executar_consulta(query)
 
+
 def obter_top5_incidentes():
-    """Ex 2: Top 5 clientes com mais incidentes de segurança registados"""
+    """Ex 2: Top 5 clientes com mais incidentes de seguranca registados.
+    Incidentes = tickets com categoria 'incident'."""
     query = """
-        SELECT c.nome, COUNT(i.id) as total_incidentes
-        FROM clientes c
-        JOIN incidentes i ON c.id = i.cliente_id
-        GROUP BY c.id, c.nome
+        SELECT u.name AS nome,
+               COUNT(t.id) AS total_incidentes
+        FROM users u
+        JOIN tickets t ON t.client_id = u.id
+        WHERE t.category = 'incident'
+        GROUP BY u.id, u.name
         ORDER BY total_incidentes DESC
         LIMIT 5;
     """
     return executar_consulta(query)
 
+
 def obter_documentos_por_mes():
-    """Ex 3: Total de documentos submetidos por cliente e por mês"""
+    """Ex 3: Total de documentos submetidos por cliente e por mes."""
     query = """
-        SELECT c.nome as cliente, 
-               TO_CHAR(d.data_submissao, 'YYYY-MM') as mes, 
-               COUNT(d.id) as total_documentos
-        FROM clientes c
-        JOIN documentos d ON c.id = d.cliente_id
-        GROUP BY c.nome, mes
+        SELECT u.name AS cliente,
+               TO_CHAR(d.upload_date, 'YYYY-MM') AS mes,
+               COUNT(d.id) AS total_documentos
+        FROM documents d
+        JOIN users u ON u.id = d.client_id
+        GROUP BY u.name, mes
         ORDER BY mes DESC, total_documentos DESC;
     """
     return executar_consulta(query)
 
+
 def obter_distribuicao_perfis():
-    """Ex 4: Distribuição de utilizadores por perfil (Administrador, Colaborador, Cliente)"""
+    """Ex 4: Distribuicao de utilizadores por perfil (Administrador, Colaborador, Cliente)."""
     query = """
-        SELECT perfil, COUNT(*) as total 
-        FROM utilizadores 
-        GROUP BY perfil;
+        SELECT CASE role
+                    WHEN 'admin'   THEN 'Administrador'
+                    WHEN 'manager' THEN 'Colaborador'
+                    WHEN 'client'  THEN 'Cliente'
+                    ELSE role
+               END AS perfil,
+               COUNT(*) AS total
+        FROM users
+        GROUP BY role
+        ORDER BY total DESC;
     """
     return executar_consulta(query)
+
 
 def obter_estado_tickets_resolucao():
-    """Ex 5: Estado dos pedidos/tickets de suporte e tempo médio de resolução"""
+    """Ex 5: Estado dos pedidos/tickets de suporte e tempo medio de resolucao (em dias)."""
     query = """
-        SELECT estado, 
-               COUNT(*) as total_tickets,
-               AVG(data_resolucao - data_criacao) as tempo_medio_resolucao
+        SELECT status AS estado,
+               COUNT(*) AS total_tickets,
+               ROUND(AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) / 86400.0)::numeric, 1)
+                   AS tempo_medio_resolucao
         FROM tickets
-        GROUP BY estado;
+        GROUP BY status
+        ORDER BY total_tickets DESC;
     """
     return executar_consulta(query)
 
+
 # ==============================================================================
-# AUTENTICAÇÃO E ENVIO DE FORMULÁRIOS
+# AUTENTICACAO E ENVIO DE FORMULARIOS
 # ==============================================================================
 
 def inserir_contacto(nome, email, mensagem):
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "INSERT INTO contact_submissions (name, email, message) VALUES (%s, %s, %s);",
-            (nome, email, mensagem)
-        )
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao gravar contacto: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
+    """Grava uma submissao do formulario de contacto publico."""
+    return executar_comando(
+        "INSERT INTO contact_submissions (name, email, message) VALUES (%s, %s, %s);",
+        (nome, email, mensagem)
+    )
+
 
 def validar_login(email, password):
+    """Valida credenciais contra a tabela users.
+    A password e guardada com hash bcrypt (coluna password_hash), por isso a
+    verificacao faz-se em Python com bcrypt.checkpw."""
     conn = obter_conexao()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         cursor.execute(
-            "SELECT id, nome, email, perfil FROM utilizadores WHERE email = %s AND password = %s;",
-            (email, password)
+            """SELECT id, name, email, role, password_hash
+               FROM users
+               WHERE email = %s AND active = TRUE;""",
+            (email,)
         )
-        return cursor.fetchone()
+        utilizador = cursor.fetchone()
+        if not utilizador:
+            return None
+
+        hash_guardado = utilizador['password_hash']
+        if not bcrypt.checkpw(password.encode('utf-8'), hash_guardado.encode('utf-8')):
+            return None
+
+        # Devolve so o necessario ao frontend, ja com o perfil legivel.
+        return {
+            'id': utilizador['id'],
+            'nome': utilizador['name'],
+            'email': utilizador['email'],
+            'perfil': ROLE_PARA_PERFIL.get(utilizador['role'], utilizador['role']),
+        }
     except Exception as e:
-        print(f"Erro na autenticação: {e}")
+        print(f"Erro na autenticacao: {e}")
         return None
     finally:
         cursor.close()
         conn.close()
 
-        # ==============================================================================
-# OPERAÇÕES DE CRUD EM FALTA (Exigidas pela Ficha 7, Ponto 5)
+
+# ==============================================================================
+# OPERACOES DE CRUD (Exigidas pela Ficha 7)
+# Operam sobre a tabela real users.
 # ==============================================================================
 
-# --- CRUD: UTILIZADORES ---
+def listar_utilizadores():
+    """READ: Lista todos os utilizadores com o perfil legivel."""
+    query = """
+        SELECT id,
+               name AS nome,
+               email,
+               CASE role
+                    WHEN 'admin'   THEN 'Administrador'
+                    WHEN 'manager' THEN 'Colaborador'
+                    WHEN 'client'  THEN 'Cliente'
+                    ELSE role
+               END AS perfil,
+               active
+        FROM users
+        ORDER BY id;
+    """
+    return executar_consulta(query)
+
 
 def criar_utilizador(nome, email, password, perfil):
-    """CREATE: Insere um novo utilizador no sistema"""
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "INSERT INTO utilizadores (nome, email, password, perfil) VALUES (%s, %s, %s, %s);",
-            (nome, email, password, perfil)
-        )
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao criar utilizador: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
+    """CREATE: Insere um novo utilizador (password guardada com hash bcrypt)."""
+    role = PERFIL_PARA_ROLE.get(perfil, perfil)
+    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    return executar_comando(
+        """INSERT INTO users (name, email, password_hash, role)
+           VALUES (%s, %s, %s, %s);""",
+        (nome, email, password_hash, role)
+    )
+
 
 def atualizar_utilizador(id_utilizador, nome, email, perfil):
-    """UPDATE: Atualiza os dados de um utilizador existente"""
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "UPDATE utilizadores SET nome = %s, email = %s, perfil = %s WHERE id = %s;",
-            (nome, email, perfil, id_utilizador)
-        )
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao atualizar utilizador: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
+    """UPDATE: Atualiza os dados de um utilizador existente."""
+    role = PERFIL_PARA_ROLE.get(perfil, perfil)
+    return executar_comando(
+        """UPDATE users
+           SET name = %s, email = %s, role = %s, updated_at = NOW()
+           WHERE id = %s;""",
+        (nome, email, role, id_utilizador)
+    )
+
 
 def eliminar_utilizador(id_utilizador):
-    """DELETE: Remove um utilizador do PostgreSQL"""
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("DELETE FROM utilizadores WHERE id = %s;", (id_utilizador,))
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao eliminar utilizador: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
+    """DELETE: Remove um utilizador."""
+    return executar_comando("DELETE FROM users WHERE id = %s;", (id_utilizador,))
 
 
-# --- CRUD: CLIENTES ---
+# ==============================================================================
+# CLIENTES
+# Nao existe tabela 'clientes': um cliente e um utilizador com role 'client'.
+# As funcoes abaixo operam sobre users filtrando por esse perfil.
+# ==============================================================================
 
-def criar_cliente(nome, estado_nis2):
-    """CREATE: Insere um novo cliente"""
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "INSERT INTO clientes (nome, estado_nis2) VALUES (%s, %s);",
-            (nome, estado_nis2)
-        )
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao criar cliente: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
-
-def atualizar_cliente(id_cliente, nome, estado_nis2):
-    """UPDATE: Altera o estado NIS2 ou o nome do cliente"""
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "UPDATE clientes SET nome = %s, estado_nis2 = %s WHERE id = %s;",
-            (nome, estado_nis2, id_cliente)
-        )
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao atualizar cliente: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
-
-def eliminar_cliente(id_cliente):
-    """DELETE: Apaga um cliente da base de dados"""
-    conn = obter_conexao()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("DELETE FROM clientes WHERE id = %s;", (id_cliente,))
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Erro ao eliminar cliente: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
+def listar_clientes():
+    """READ: Lista os utilizadores que sao clientes."""
+    query = """
+        SELECT id, name AS nome, email, company AS empresa, active
+        FROM users
+        WHERE role = 'client'
+        ORDER BY name;
+    """
+    return executar_consulta(query)

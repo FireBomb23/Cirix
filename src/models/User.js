@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+const bcrypt = require('bcrypt');
 const sequelize = require('../config/database');
 
 // Tabela "users" (ver database/schema.sql).
@@ -18,6 +19,21 @@ const User = sequelize.define('User', {
   timestamps: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at',
+});
+
+// Hash da password com bcrypt (como na Aula 11 dos professores).
+// O hash e feito no proprio model, ao criar e ao alterar a password.
+User.beforeCreate(async (user) => {
+  if (user.password_hash) {
+    user.password_hash = await bcrypt.hash(user.password_hash, 10);
+  }
+});
+
+User.beforeUpdate(async (user) => {
+  // So volta a cifrar se a password tiver mesmo mudado (evita duplo-hash).
+  if (user.changed('password_hash')) {
+    user.password_hash = await bcrypt.hash(user.password_hash, 10);
+  }
 });
 
 module.exports = User;

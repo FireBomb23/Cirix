@@ -1,5 +1,5 @@
 -- ============================================================
--- Cirix - Esquema OFICIAL da base de dados "projeto_BD" (PostgreSQL)
+-- Ciryx - Esquema OFICIAL da base de dados "projeto_BD" (PostgreSQL)
 -- Fonte partilhada entre o projeto Django (BD/) e o projeto AI2 (src/ + frontend/).
 -- Correr numa base de dados projeto_BD vazia.
 -- ============================================================
@@ -22,13 +22,15 @@ CREATE TABLE users (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
--- Inserção de dados de teste na tabela users
+-- Inserção de dados de teste na tabela users.
+-- As passwords sao guardadas com hash bcrypt (como na Aula 11). Passwords reais (para login):
+--   admin@ciryx.pt -> admin123 | manager@ciryx.pt -> manager123 | cliente@empresa.pt -> client123
 INSERT INTO users (name, email, password_hash, role, twofa_word1, twofa_word2, twofa_word3) VALUES
-('João Silva', 'admin@ciryx.pt', 'admin123', 'admin', 'segurança', 'firewall', 'cifra'),
-('Maria Santos', 'manager@ciryx.pt', 'manager123', 'manager', 'proteção', 'ameaça', 'escudo');
+('João Silva', 'admin@ciryx.pt', '$2b$10$Smo3ndzdnCW6Xov6xxCqGusKvu5jbpVUYwr44lXY.2fzobrnohYyu', 'admin', 'segurança', 'firewall', 'cifra'),
+('Maria Santos', 'manager@ciryx.pt', '$2b$10$ngcEDHBDTUY7b7mSVsJE1uUgrDATHqpbuBjcOSZ1KjUqYAnUu7UCi', 'manager', 'proteção', 'ameaça', 'escudo');
 
 INSERT INTO users (name, email, password_hash, role, company, twofa_word1, twofa_word2, twofa_word3) VALUES
-('Carlos Oliveira', 'cliente@empresa.pt', 'client123', 'client', 'Empresa ABC, Lda.', 'privacidade', 'código', 'autenticação');
+('Carlos Oliveira', 'cliente@empresa.pt', '$2b$10$jxoGXkgJ3OKE3QRHzhpPU.qR7MP6DI/LwPRTvWk1mqH5CqC.Ask8e', 'client', 'Empresa ABC, Lda.', 'privacidade', 'código', 'autenticação');
 
 
 -- ============================================================
@@ -120,6 +122,7 @@ CREATE TABLE documents (
     file_type VARCHAR(20), -- PDF, XLSX, DOCX, etc.
     file_size VARCHAR(20), -- Ex: "2.4 MB"
     file_path VARCHAR(500), -- Caminho local de simulação do ficheiro
+    file_data TEXT, -- Conteudo do ficheiro em base64 (data URL) para upload/download real
     category VARCHAR(80), -- Relatórios, Templates, Documentação
     visibility VARCHAR(20) NOT NULL DEFAULT 'client' CHECK (visibility IN ('global', 'client')),
     client_id INTEGER REFERENCES users(id) ON DELETE SET NULL, -- Se for NULL, o documento passa a global/público
@@ -268,6 +271,8 @@ CREATE TABLE contact_submissions (
     phone VARCHAR(30),
     message TEXT NOT NULL,
     read BOOLEAN NOT NULL DEFAULT FALSE,
+    reply TEXT,                    -- resposta do staff (admin/gestor)
+    replied_at TIMESTAMP,          -- data da resposta
     submitted_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 

@@ -6,6 +6,10 @@ frontend/node_modules/
 # Build do frontend
 frontend/dist/
 
+# Zip de entrega (artefacto, nao deve ir para o repositorio)
+entrega_AI2_Ciryx.zip
+*.zip
+
 # Variaveis de ambiente (contem credenciais da BD)
 .env
 src/.env

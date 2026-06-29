@@ -2,17 +2,19 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import api from '../api.js';
 
 const AuthContext = createContext(null);
-
-// Utilizadores de demonstração — usados como fallback se o backend não estiver disponível
-// ou se as credenciais de demo ainda não foram inseridas na BD.
-const MOCK_USERS = {
-  'admin@ciryx.pt':     { id: '1', name: 'João Silva',      email: 'admin@ciryx.pt',     role: 'admin',   company: 'Ciryx', active: true, _pw: 'admin123' },
-  'manager@ciryx.pt':   { id: '2', name: 'Maria Santos',    email: 'manager@ciryx.pt',   role: 'manager', company: 'Ciryx', active: true, _pw: 'manager123' },
-  'cliente@empresa.pt': { id: '3', name: 'Carlos Oliveira', email: 'cliente@empresa.pt', role: 'client',  company: 'Empresa ABC', active: true, _pw: 'cliente123' },
-};
+const TOKEN_KEY = 'ciryx_token';
+const USER_KEY = 'ciryx_user';
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  // Recupera a sessao guardada (mantem login apos refresh)
+  const [user, setUser] = useState(() => {
+    try {
+      const u = localStorage.getItem(USER_KEY);
+      return u ? JSON.parse(u) : null;
+    } catch {
+      return null;
+    }
+  });
   const [toasts, setToasts] = useState([]);
 
   const showToast = useCallback((text, type = 'success') => {
@@ -21,48 +23,64 @@ export function AuthProvider({ children }) {
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3500);
   }, []);
 
-  const login = useCallback(async (email, password) => {
-    const emailLower = email.toLowerCase().trim();
+  const persist = useCallback((token, userData) => {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    setUser(userData);
+  }, []);
 
-    // 1) Tentar o backend real
+  // Atualiza so os dados do utilizador (ex.: depois de editar o perfil)
+  const applyUser = useCallback((userData) => {
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    setUser(userData);
+  }, []);
+
+  // 1o passo: email + password. Pode pedir 2FA (devolve needs2FA) ou autenticar logo.
+  const login = useCallback(async (email, password) => {
     try {
-      const { data } = await api.post('/users/login', { email: emailLower, password });
+      const { data } = await api.post('/users/login', { email: email.toLowerCase().trim(), password });
+      if (data.status === '2fa_required') {
+        return { needs2FA: true, userId: data.userId, name: data.name };
+      }
       if (data.status === 'success') {
-        setUser(data.user);
+        persist(data.token, data.user);
+        showToast(`Bem-vindo, ${data.user.name}!`, 'success');
+        return { needs2FA: false, user: data.user };
+      }
+      throw new Error(data.message || 'Credenciais inválidas.');
+    } catch (err) {
+      const msg = err.response?.data?.message
+        || (err.request && !err.response
+              ? 'Não foi possível ligar ao servidor. Confirme que o backend está a correr (porta 3000).'
+              : err.message || 'Credenciais inválidas.');
+      throw new Error(msg);
+    }
+  }, [persist, showToast]);
+
+  // 2o passo: palavra de seguranca (2FA), verificada no servidor.
+  const verify2fa = useCallback(async (userId, word) => {
+    try {
+      const { data } = await api.post('/users/verify-2fa', { userId, word });
+      if (data.status === 'success') {
+        persist(data.token, data.user);
         showToast(`Bem-vindo, ${data.user.name}!`, 'success');
         return data.user;
       }
-      throw new Error(data.message || 'Credenciais inválidas.');
-    } catch (apiErr) {
-      // 2) Fallback para utilizadores mock:
-      //    - Se o backend não está acessível (erro de rede)
-      //    - OU se é um utilizador de demo e a BD ainda não tem o seed
-      const isNetworkError = !apiErr.response;
-      const isDemoUser = !!MOCK_USERS[emailLower];
-
-      if (isNetworkError || isDemoUser) {
-        const mock = MOCK_USERS[emailLower];
-        if (mock && mock._pw === password) {
-          const { _pw, ...userData } = mock;
-          setUser(userData);
-          showToast(`Bem-vindo, ${userData.name}!`, 'success');
-          return userData;
-        }
-      }
-
-      // 3) Repassar mensagem de erro do backend, ou genérica
-      const msg = apiErr.response?.data?.message || 'Credenciais inválidas.';
-      throw new Error(msg);
+      throw new Error(data.message || 'Palavra de segurança incorreta.');
+    } catch (err) {
+      throw new Error(err.response?.data?.message || 'Palavra de segurança incorreta.');
     }
-  }, [showToast]);
+  }, [persist, showToast]);
 
   const logout = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     setUser(null);
     showToast('Sessão terminada com sucesso.', 'success');
   }, [showToast]);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, showToast }}>
+    <AuthContext.Provider value={{ user, login, verify2fa, logout, showToast, applyUser }}>
       {children}
       <div className="toast-container">
         {toasts.map((t) => (

@@ -1,8 +1,35 @@
 import axios from 'axios';
 
-// Cliente HTTP central. baseURL aponta para o backend Express (porta 3000).
+// Cliente HTTP central. Em local usa a porta 3000; em produção define-se VITE_API_URL
+// (ex.: no Vercel) a apontar para o backend publicado (Render).
 const api = axios.create({
-  baseURL: 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
 });
+
+// Anexa automaticamente o token JWT (se existir) a todos os pedidos.
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('ciryx_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Se o token expirar/for invalido (401), termina a sessao e volta ao login.
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('ciryx_token');
+      localStorage.removeItem('ciryx_user');
+      const path = window.location.pathname;
+      const publicas = ['/', '/login', '/sobre', '/servicos', '/noticias', '/contacto'];
+      if (!publicas.includes(path)) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

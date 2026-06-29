@@ -1,13 +1,15 @@
 // Insere (ou atualiza) os 3 utilizadores de demo na BD projeto_BD.
+// As passwords sao guardadas com hash bcrypt.
 // Usar: node src/scripts/seed-users.js
 require('dotenv').config();
+const bcrypt = require('bcrypt');
 const { sequelize, User } = require('../models');
 
 const DEMO_USERS = [
   {
     name: 'João Silva',
     email: 'admin@ciryx.pt',
-    password_hash: 'admin123',
+    password: 'admin123',
     role: 'admin',
     company: null,
     twofa_word1: 'segurança',
@@ -18,7 +20,7 @@ const DEMO_USERS = [
   {
     name: 'Maria Santos',
     email: 'manager@ciryx.pt',
-    password_hash: 'manager123',
+    password: 'manager123',
     role: 'manager',
     company: null,
     twofa_word1: 'proteção',
@@ -29,7 +31,7 @@ const DEMO_USERS = [
   {
     name: 'Carlos Oliveira',
     email: 'cliente@empresa.pt',
-    password_hash: 'cliente123',
+    password: 'client123',
     role: 'client',
     company: 'Empresa ABC, Lda.',
     twofa_word1: 'privacidade',
@@ -45,21 +47,23 @@ async function seed() {
     console.log('✅ Ligação à BD estabelecida.\n');
 
     for (const u of DEMO_USERS) {
+      const { password, ...rest } = u;
+      const data = { ...rest, password_hash: await bcrypt.hash(password, 10) };
       const existing = await User.findOne({ where: { email: u.email } });
       if (existing) {
-        await existing.update(u);
+        await existing.update(data, { hooks: false }); // ja vem com hash
         console.log(`🔄 Atualizado: ${u.email}`);
       } else {
-        await User.create(u);
+        await User.create(data, { hooks: false }); // ja vem com hash
         console.log(`➕ Criado:     ${u.email}`);
       }
     }
 
-    console.log('\n✅ Seed concluído! Utilizadores de demo prontos.');
+    console.log('\n✅ Seed concluído! Utilizadores de demo prontos (passwords com hash bcrypt).');
     console.log('\nCredenciais:');
     console.log('  admin@ciryx.pt     / admin123    (role: admin)');
     console.log('  manager@ciryx.pt   / manager123  (role: manager)');
-    console.log('  cliente@empresa.pt / cliente123  (role: client)');
+    console.log('  cliente@empresa.pt / client123   (role: client)');
   } catch (e) {
     console.error('❌ Erro:', e.message || String(e));
     if (e.parent) console.error('   Causa SQL:', e.parent.message);

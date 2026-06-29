@@ -170,6 +170,10 @@
     // ============================================================
 
 
+    // DADOS DO DASHBOARD (FICHA 9) injetados pelo Django via SQL (basedados.py).
+    // Substitui os dados simulados: estas metricas vem da base de dados PostgreSQL.
+    const dbData = {{ dashboard_json|safe }};
+
     // ESTADO DA APLICAÇÃO SPA
     const state = {
       currentPage: 'home',

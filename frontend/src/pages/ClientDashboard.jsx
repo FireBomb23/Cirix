@@ -2,13 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import {
-  mockTickets, mockDocuments, mockRequests,
-  mockRiskAssessment, mockAtivos, mockIncidentes, mockPenTests,
-} from '../mockData.js';
-import {
   apiGetTickets, apiCreateTicket,
-  apiGetDocuments,
+  apiGetDocuments, apiCreateDocument, apiGetDocument,
   apiGetServiceRequests, apiCreateServiceRequest,
+  apiGetTicketComments, apiCreateTicketComment,
+  apiGetUsers, apiGetConversations, apiEnsureConversation, apiGetConversationMessages, apiSendConversationMessage,
+  apiUpdateMe,
 } from '../apiService.js';
 
 const ShieldIcon = () => (
@@ -55,7 +54,7 @@ function RiskGauge({ score }) {
   );
 }
 
-const BLANK_TICKET = { title: '', description: '', category: 'Suporte Técnico', priority: 'medium' };
+const BLANK_TICKET = { title: '', description: '', category: 'technical', priority: 'medium' };
 const BLANK_REQUEST = { title: '', description: '' };
 
 const EVID_CATS = [
@@ -68,17 +67,29 @@ const EVID_CATS = [
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
-  const { user, logout, showToast } = useAuth();
+  const { user, logout, showToast, applyUser } = useAuth();
   const [page, setPage] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const fileInputRef = useRef(null);
 
-  const clientId = user?.id || '3';
+  // "A minha conta"
+  const [accName, setAccName] = useState(user?.name || '');
+  const [accPassword, setAccPassword] = useState('');
 
-  // Dados do backend (null = ainda não carregou, usa mock)
-  const [apiTickets, setApiTickets] = useState(null);
-  const [apiDocs, setApiDocs] = useState(null);
-  const [apiRequests, setApiRequests] = useState(null);
+  const clientId = String(user?.id ?? '');
+
+  // Dados carregados do backend real
+  const [tickets, setTickets] = useState([]);
+  const [docs, setDocs] = useState([]);
+  const [requests, setRequests] = useState([]);
+
+  // Chat direto (estilo WhatsApp) com qualquer utilizador
+  const [allUsers, setAllUsers] = useState([]);
+  const [chatPeer, setChatPeer] = useState(null);
+  const [chatConv, setChatConv] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [unreadPeers, setUnreadPeers] = useState(() => new Set());
 
   // Estado local
   const [activeTicket, setActiveTicket] = useState(null);
@@ -90,71 +101,223 @@ export default function ClientDashboard() {
   const [uploadedFiles, setUploadedFiles] = useState({});
   const [activeCat, setActiveCat] = useState('ativos');
 
-  // Risco
-  const risco = mockRiskAssessment[clientId];
-  const ativos = mockAtivos[clientId] || [];
-  const incidentes = mockIncidentes[clientId] || [];
-  const penTests = mockPenTests[clientId] || [];
+  // Avaliacao de risco / ativos / incidentes / pentests ainda nao tem tabelas na
+  // API partilhada (schema.sql), por isso estas seccoes mostram estado vazio.
+  const risco = null;
+  const ativos = [];
+  const incidentes = [];
+  const penTests = [];
 
   // Carregar dados reais da API
   useEffect(() => {
+    if (!clientId) return;
     apiGetTickets()
-      .then(t => setApiTickets(t.filter(x => x.clientId === clientId)))
-      .catch(() => {});
+      .then(t => setTickets(t.filter(x => x.clientId === clientId)))
+      .catch((e) => { setTickets([]); if (e.response?.status !== 401) showToast('Não foi possível carregar alguns dados.', 'error'); });
     apiGetDocuments()
-      .then(d => setApiDocs(d.filter(x => x.clientId === clientId)))
-      .catch(() => {});
+      .then(d => setDocs(d.filter(x => x.clientId === clientId || x.clientId === null)))
+      .catch(() => setDocs([]));
     apiGetServiceRequests()
-      .then(r => setApiRequests(r.filter(x => x.clientId === clientId)))
-      .catch(() => {});
+      .then(r => setRequests(r.filter(x => x.clientId === clientId)))
+      .catch(() => setRequests([]));
+    apiGetUsers().then(setAllUsers).catch(() => setAllUsers([]));
   }, [clientId]);
 
-  const myTickets = apiTickets ?? mockTickets.filter(t => t.clientId === clientId || !t.clientId);
-  const myDocs = apiDocs ?? mockDocuments.filter(d => d.clientId === clientId);
-  const myRequests = apiRequests ?? mockRequests.filter(r => r.clientId === clientId);
+  const myTickets = tickets;
+  const myDocs = docs;
+  const myRequests = requests;
 
   const submitTicket = async (e) => {
     e.preventDefault();
-    const tempId = 't-' + Date.now();
-    const newT = { id: tempId, ...ticketForm, status: 'open', clientId, clientName: user?.name || '', assignedTo: 'Equipa Ciryx', comments: [] };
-    setApiTickets(prev => [...(prev || myTickets), newT]);
-    setShowTicketModal(false);
-    setTicketForm(BLANK_TICKET);
-    showToast('Ticket submetido com sucesso!');
     try {
       const created = await apiCreateTicket({ ...ticketForm, clientId });
-      setApiTickets(prev => prev.map(t => t.id === tempId ? created : t));
-    } catch {}
+      setTickets(prev => [...prev, created]);
+      setShowTicketModal(false);
+      setTicketForm(BLANK_TICKET);
+      showToast('Ticket submetido com sucesso!');
+    } catch (err) {
+      showToast('Erro ao submeter ticket: ' + (err.response?.data?.error || err.message), 'error');
+    }
   };
 
   const submitRequest = async (e) => {
     e.preventDefault();
-    const tempId = 'r-' + Date.now();
-    const newR = { id: tempId, ...requestForm, status: 'pending', clientId, date: new Date().toISOString().split('T')[0] };
-    setApiRequests(prev => [...(prev || myRequests), newR]);
-    setShowRequestModal(false);
-    setRequestForm(BLANK_REQUEST);
-    showToast('Pedido de serviço enviado!');
     try {
       const created = await apiCreateServiceRequest({ ...requestForm, clientId });
-      setApiRequests(prev => prev.map(r => r.id === tempId ? created : r));
-    } catch {}
+      setRequests(prev => [...prev, created]);
+      setShowRequestModal(false);
+      setRequestForm(BLANK_REQUEST);
+      showToast('Pedido de serviço enviado!');
+    } catch (err) {
+      showToast('Erro ao enviar pedido: ' + (err.response?.data?.error || err.message), 'error');
+    }
   };
 
-  const ticketReply = () => {
-    if (!replyText.trim() || !activeTicket) return;
-    const comment = { id: 'c' + Date.now(), author: user?.name || 'Cliente', isAdmin: false, text: replyText, date: new Date().toISOString() };
-    setApiTickets(prev => (prev || myTickets).map(t => t.id === activeTicket.id ? { ...t, comments: [...(t.comments || []), comment] } : t));
-    setActiveTicket(prev => ({ ...prev, comments: [...(prev.comments || []), comment] }));
+  // Abrir conversa de um ticket e carregar os comentarios reais da API
+  const openTicket = async (t) => {
+    setActiveTicket(t);
     setReplyText('');
+    try {
+      const comments = await apiGetTicketComments(t.id);
+      setActiveTicket(prev => (prev && prev.id === t.id ? { ...prev, comments } : prev));
+      setTickets(prev => prev.map(x => x.id === t.id ? { ...x, comments } : x));
+    } catch { /* mantem lista vazia */ }
   };
 
-  const handleFileUpload = (e, cat) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-    setUploadedFiles(prev => ({ ...prev, [cat]: [...(prev[cat] || []), ...files.map(f => ({ name: f.name, size: `${(f.size / 1024).toFixed(0)} KB`, date: new Date().toISOString().split('T')[0] }))] }));
-    showToast(`${files.length} ficheiro(s) carregados em "${EVID_CATS.find(c => c.id === cat)?.label}".`);
+  const ticketReply = async () => {
+    if (!replyText.trim() || !activeTicket) return;
+    try {
+      const comment = await apiCreateTicketComment(activeTicket.id, user.id, replyText);
+      setTickets(prev => prev.map(t => t.id === activeTicket.id ? { ...t, comments: [...(t.comments || []), comment] } : t));
+      setActiveTicket(prev => ({ ...prev, comments: [...(prev.comments || []), comment] }));
+      setReplyText('');
+    } catch (err) {
+      showToast('Erro ao enviar mensagem.', 'error');
+    }
   };
+
+  // ─── CHAT (mensagens diretas com qualquer utilizador) ───────────────────────
+  const openChat = async (peer) => {
+    setChatPeer(peer);
+    setChatConv(null);
+    setChatMessages([]);
+    setChatInput('');
+    try {
+      const conv = await apiEnsureConversation(user.id, peer.id);
+      setChatConv(conv);
+      setChatMessages(await apiGetConversationMessages(conv.id));
+      localStorage.setItem('ciryx_seen_' + conv.id, new Date().toISOString());
+      setUnreadPeers(prev => { const n = new Set(prev); n.delete(String(peer.id)); return n; });
+    } catch {
+      showToast('Erro ao abrir conversa.', 'error');
+    }
+  };
+
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || !chatConv) return;
+    try {
+      const msg = await apiSendConversationMessage(chatConv.id, user.id, chatInput);
+      setChatMessages(prev => [...prev, msg]);
+      setChatInput('');
+    } catch {
+      showToast('Erro ao enviar mensagem.', 'error');
+    }
+  };
+
+  const reloadChat = async () => {
+    if (!chatConv) return;
+    try { setChatMessages(await apiGetConversationMessages(chatConv.id)); } catch { /* ignore */ }
+  };
+
+  // Deteta conversas com mensagens novas do outro lado (badge de nao lidas)
+  const refreshUnread = async () => {
+    if (!user) return;
+    try {
+      const convs = await apiGetConversations(user.id);
+      const s = new Set();
+      convs.forEach(c => {
+        const other = (c.participant1 && c.participant1.id !== String(user.id)) ? c.participant1 : c.participant2;
+        if (!other || !c.lastMessageAt || !c.lastSenderId || c.lastSenderId === String(user.id)) return;
+        const seen = localStorage.getItem('ciryx_seen_' + c.id);
+        if (!seen || new Date(c.lastMessageAt) > new Date(seen)) s.add(other.id);
+      });
+      setUnreadPeers(s);
+    } catch { /* ignore */ }
+  };
+
+  // Poll de nao lidas (8s)
+  useEffect(() => {
+    refreshUnread();
+    const t = setInterval(refreshUnread, 8000);
+    return () => clearInterval(t);
+  }, []); // eslint-disable-line
+
+  // Auto-refresh da conversa aberta (5s)
+  useEffect(() => {
+    if (!chatConv) return;
+    const t = setInterval(async () => {
+      try { setChatMessages(await apiGetConversationMessages(chatConv.id)); } catch { /* ignore */ }
+    }, 5000);
+    return () => clearInterval(t);
+  }, [chatConv]);
+
+  const saveAccount = async (e) => {
+    e.preventDefault();
+    try {
+      const updated = await apiUpdateMe({ name: accName, password: accPassword || undefined });
+      applyUser(updated);
+      setAccPassword('');
+      showToast('Conta atualizada com sucesso!');
+    } catch (err) {
+      showToast('Erro ao atualizar conta: ' + (err.response?.data?.error || err.message), 'error');
+    }
+  };
+
+  // ─── Documentos: upload e download reais (ficheiro em base64) ────────────────
+  const fileToBase64 = (file) => new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+
+  const uploadDoc = async (file) => {
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) { showToast('Ficheiro demasiado grande (máx. 8MB).', 'error'); return; }
+    try {
+      const file_data = await fileToBase64(file);
+      const created = await apiCreateDocument({
+        name: file.name,
+        file_type: (file.name.split('.').pop() || 'FILE').toUpperCase(),
+        file_size: `${(file.size / 1024).toFixed(0)} KB`,
+        file_data,
+        category: 'Documentação',
+        visibility: 'client',
+        client_id: clientId,
+      });
+      setDocs(prev => [...prev, created]);
+      showToast('Documento carregado com sucesso!');
+    } catch (err) {
+      showToast('Erro ao carregar documento: ' + (err.response?.data?.error || err.message), 'error');
+    }
+  };
+
+  const downloadDoc = async (d) => {
+    try {
+      const full = d.fileData ? d : await apiGetDocument(d.id);
+      if (!full.fileData) { showToast('Este documento não tem ficheiro para transferir.', 'error'); return; }
+      const a = document.createElement('a');
+      a.href = full.fileData; a.download = full.name;
+      document.body.appendChild(a); a.click(); a.remove();
+    } catch { showToast('Erro ao transferir o documento.', 'error'); }
+  };
+
+  // Upload real: cada ficheiro fica guardado como documento (base64) do cliente
+  const uploadFiles = async (files, cat) => {
+    if (!files.length) return;
+    const label = EVID_CATS.find(c => c.id === cat)?.label || 'Documentação';
+    let okCount = 0;
+    for (const f of files) {
+      if (f.size > 8 * 1024 * 1024) { showToast(`${f.name}: demasiado grande (máx. 8MB).`, 'error'); continue; }
+      try {
+        const file_data = await fileToBase64(f);
+        const created = await apiCreateDocument({
+          name: f.name,
+          file_type: (f.name.split('.').pop() || 'FILE').toUpperCase(),
+          file_size: `${(f.size / 1024).toFixed(0)} KB`,
+          file_data, category: label, visibility: 'client', client_id: clientId,
+        });
+        setDocs(prev => [...prev, created]);
+        setUploadedFiles(prev => ({ ...prev, [cat]: [...(prev[cat] || []), { name: f.name, size: `${(f.size / 1024).toFixed(0)} KB`, date: new Date().toISOString().split('T')[0] }] }));
+        okCount += 1;
+      } catch (err) {
+        showToast('Erro ao carregar ' + f.name, 'error');
+      }
+    }
+    if (okCount) showToast(`${okCount} ficheiro(s) carregados em "${label}".`);
+  };
+
+  const handleFileUpload = (e, cat) => uploadFiles(Array.from(e.target.files || []), cat);
 
   const triggerFileUpload = (cat) => {
     if (fileInputRef.current) {
@@ -167,6 +330,8 @@ export default function ClientDashboard() {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+    { id: 'mensagens', label: 'Mensagens', icon: '💬' },
+    { id: 'conta', label: 'A Minha Conta', icon: '👤' },
     { id: 'tickets', label: 'Tickets de Suporte', icon: '🎫' },
     { id: 'pedidos', label: 'Pedidos de Serviço', icon: '📋' },
     { id: 'documentos', label: 'Documentos', icon: '📄' },
@@ -240,6 +405,59 @@ export default function ClientDashboard() {
             </>
           )}
 
+          {page === 'conta' && (
+            <div className="table-wrap" style={{ maxWidth: '520px', padding: '1.5rem' }}>
+              <div className="table-header" style={{ padding: 0, border: 'none', marginBottom: '1rem' }}><h3>A Minha Conta</h3></div>
+              <form onSubmit={saveAccount}>
+                <div className="form-group"><label className="label">Nome</label><input className="input" value={accName} onChange={e => setAccName(e.target.value)} required /></div>
+                <div className="form-group"><label className="label">Email</label><input className="input" value={user?.email || ''} disabled /></div>
+                <div className="form-group"><label className="label">Nova password</label><input className="input" type="password" value={accPassword} onChange={e => setAccPassword(e.target.value)} placeholder="Deixa vazio para manter a atual" /></div>
+                <button className="btn btn-primary" type="submit">Guardar alterações</button>
+              </form>
+            </div>
+          )}
+
+          {page === 'mensagens' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem', height: '600px' }}>
+              <div className="table-wrap" style={{ overflow: 'auto' }}>
+                <div className="table-header"><h3>Contactos</h3></div>
+                {allUsers.filter(u => String(u.id) !== String(user.id)).map(u => (
+                  <div key={u.id} onClick={() => openChat(u)} style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid var(--slate-100)', cursor: 'pointer', background: chatPeer?.id === u.id ? 'var(--slate-50)' : 'white' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>{unreadPeers.has(String(u.id)) && <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#ef4444', marginRight: 6 }} />}{u.name}</span>
+                      <span className={`badge ${u.role === 'admin' ? 'badge-red' : u.role === 'manager' ? 'badge-blue' : 'badge-yellow'}`} style={{ fontSize: '0.65rem' }}>{u.role === 'admin' ? 'Admin' : u.role === 'manager' ? 'Gestor' : 'Cliente'}</span>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>{u.email}</div>
+                  </div>
+                ))}
+                {allUsers.filter(u => String(u.id) !== String(user.id)).length === 0 && <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--slate-400)' }}>Sem outros utilizadores.</div>}
+              </div>
+              <div className="table-wrap" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                {chatPeer ? (
+                  <>
+                    <div className="table-header"><h3>{chatPeer.name}</h3><button className="btn btn-outline-dark btn-sm" onClick={reloadChat}>↻ Atualizar</button></div>
+                    <div className="ticket-messages" style={{ flex: 1, overflow: 'auto' }}>
+                      {chatMessages.length === 0 && <div style={{ textAlign: 'center', color: 'var(--slate-400)', padding: '2rem' }}>Sem mensagens ainda. Escreva a primeira!</div>}
+                      {chatMessages.map(mm => {
+                        const mine = mm.senderId === String(user.id);
+                        return (
+                          <div key={mm.id} style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
+                            <div className={`msg-bubble ${mine ? 'client-msg' : 'admin-msg'}`}>{mm.text}</div>
+                            <div className="msg-meta" style={{ textAlign: mine ? 'right' : 'left' }}>{mm.senderName} • {new Date(mm.date).toLocaleString('pt')}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="ticket-reply">
+                      <input className="input" value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Escrever mensagem..." style={{ flex: 1 }} onKeyDown={e => e.key === 'Enter' && sendChatMessage()} />
+                      <button className="btn btn-primary" onClick={sendChatMessage}>Enviar</button>
+                    </div>
+                  </>
+                ) : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--slate-400)' }}>Selecione um contacto para conversar</div>}
+              </div>
+            </div>
+          )}
+
           {page === 'tickets' && (
             <>
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
@@ -253,7 +471,7 @@ export default function ClientDashboard() {
                         <h3 style={{ marginBottom: '0.25rem' }}>{t.title}</h3>
                         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>{statusBadge(t.status)} {priorityBadge(t.priority)}<span style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>{t.category} • {t.assignedTo || 'Equipa Ciryx'}</span></div>
                       </div>
-                      <button className="btn btn-outline-dark btn-sm" onClick={() => { setActiveTicket(t); setReplyText(''); }}>💬 Conversa</button>
+                      <button className="btn btn-outline-dark btn-sm" onClick={() => openTicket(t)}>💬 Conversa</button>
                     </div>
                     {t.description && <div style={{ padding: '0 1.5rem 1rem', fontSize: '0.875rem', color: 'var(--slate-600)' }}>{t.description}</div>}
                   </div>
@@ -287,13 +505,19 @@ export default function ClientDashboard() {
 
           {page === 'documentos' && (
             <div className="table-wrap">
-              <div className="table-header"><h3>Documentos ({myDocs.length})</h3></div>
+              <div className="table-header">
+                <h3>Documentos ({myDocs.length})</h3>
+                <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer' }}>
+                  + Carregar documento
+                  <input type="file" style={{ display: 'none' }} onChange={e => { uploadDoc(e.target.files[0]); e.target.value = ''; }} />
+                </label>
+              </div>
               {myDocs.length > 0 ? (
                 <div className="table-scroll">
                   <table>
                     <thead><tr><th>Nome</th><th>Tipo</th><th>Tamanho</th><th>Data</th><th>Categoria</th><th>Ação</th></tr></thead>
                     <tbody>{myDocs.map(d => (
-                      <tr key={d.id}><td style={{ fontWeight: 500 }}>{d.name}</td><td><span className="badge badge-blue">{d.type}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.size}</td><td style={{ color: 'var(--slate-500)' }}>{d.uploadDate}</td><td><span className="badge badge-gray">{d.category}</span></td><td><button className="btn btn-sm btn-outline-dark" onClick={() => showToast('Download (demo)')}>⬇</button></td></tr>
+                      <tr key={d.id}><td style={{ fontWeight: 500 }}>{d.name}</td><td><span className="badge badge-blue">{d.type}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.size}</td><td style={{ color: 'var(--slate-500)' }}>{d.uploadDate}</td><td><span className="badge badge-gray">{d.category}</span></td><td><button className="btn btn-sm btn-outline-dark" onClick={() => downloadDoc(d)}>⬇</button></td></tr>
                     ))}</tbody>
                   </table>
                 </div>
@@ -397,7 +621,7 @@ export default function ClientDashboard() {
                     onClick={() => triggerFileUpload('documentacao')}
                     onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--yellow)'; }}
                     onDragLeave={e => { e.currentTarget.style.borderColor = 'var(--slate-300)'; }}
-                    onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--slate-300)'; const files = Array.from(e.dataTransfer.files); if (files.length) { setUploadedFiles(prev => ({ ...prev, documentacao: [...(prev.documentacao || []), ...files.map(f => ({ name: f.name, size: `${(f.size / 1024).toFixed(0)} KB`, date: new Date().toISOString().split('T')[0] }))] })); showToast(`${files.length} ficheiro(s) carregados.`); } }}
+                    onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--slate-300)'; uploadFiles(Array.from(e.dataTransfer.files), 'documentacao'); }}
                   >
                     <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📄</div>
                     <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Arraste ficheiros para aqui ou clique para selecionar</div>
@@ -440,7 +664,7 @@ export default function ClientDashboard() {
                     onClick={() => triggerFileUpload('outros')}
                     onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--yellow)'; }}
                     onDragLeave={e => { e.currentTarget.style.borderColor = 'var(--slate-300)'; }}
-                    onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--slate-300)'; const files = Array.from(e.dataTransfer.files); if (files.length) { setUploadedFiles(prev => ({ ...prev, outros: [...(prev.outros || []), ...files.map(f => ({ name: f.name, size: `${(f.size / 1024).toFixed(0)} KB`, date: new Date().toISOString().split('T')[0] }))] })); showToast(`${files.length} ficheiro(s) carregados.`); } }}
+                    onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--slate-300)'; uploadFiles(Array.from(e.dataTransfer.files), 'outros'); }}
                   >
                     <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📎</div>
                     <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Arraste ficheiros para aqui ou clique para selecionar</div>
@@ -496,7 +720,7 @@ export default function ClientDashboard() {
               <div className="modal-body">
                 <div className="form-group"><label className="label">Título *</label><input className="input" value={ticketForm.title} onChange={e => setTicketForm({ ...ticketForm, title: e.target.value })} required placeholder="Descreva brevemente o problema..." /></div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group"><label className="label">Categoria</label><select className="input" value={ticketForm.category} onChange={e => setTicketForm({ ...ticketForm, category: e.target.value })}><option>Suporte Técnico</option><option>Segurança</option><option>Auditoria</option><option>NIS2</option><option>Outro</option></select></div>
+                  <div className="form-group"><label className="label">Categoria</label><select className="input" value={ticketForm.category} onChange={e => setTicketForm({ ...ticketForm, category: e.target.value })}><option value="technical">Suporte Técnico</option><option value="incident">Incidente de Segurança</option><option value="billing">Faturação</option><option value="general">Geral</option><option value="other">Outro</option></select></div>
                   <div className="form-group"><label className="label">Prioridade</label><select className="input" value={ticketForm.priority} onChange={e => setTicketForm({ ...ticketForm, priority: e.target.value })}><option value="low">Baixa</option><option value="medium">Média</option><option value="high">Alta</option><option value="urgent">Urgente</option></select></div>
                 </div>
                 <div className="form-group"><label className="label">Descrição *</label><textarea className="input" rows={4} value={ticketForm.description} onChange={e => setTicketForm({ ...ticketForm, description: e.target.value })} required placeholder="Descreva o problema em detalhe..." /></div>
