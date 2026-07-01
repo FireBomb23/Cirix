@@ -12,7 +12,7 @@ export async function apiGetUsers() {
   return data; // array de utilizadores (sem password_hash)
 }
 
-export async function apiCreateUser({ name, email, password, role, company, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone }) {
+export async function apiCreateUser({ name, email, password, role, company, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone, word1, word2, word3 }) {
   const { data } = await api.post('/users/create', {
     name,
     email,
@@ -23,6 +23,7 @@ export async function apiCreateUser({ name, email, password, role, company, phon
     phone: phone || null,
     so_name: so_name || null, so_email: so_email || null, so_phone: so_phone || null,
     pc_name: pc_name || null, pc_email: pc_email || null, pc_phone: pc_phone || null,
+    twofa_word1: word1 || null, twofa_word2: word2 || null, twofa_word3: word3 || null,
   });
   return data;
 }

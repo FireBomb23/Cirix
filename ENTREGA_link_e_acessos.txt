@@ -1,0 +1,41 @@
+========================================================
+CYRIX — Plataforma de Gestão de Risco e Conformidade
+Projeto Integrado III — Tecnologias e Design de Multimédia
+========================================================
+
+LINK DO PROJETO ONLINE (site):
+  https://cyrix-mu.vercel.app
+
+API / Backend (informativo):
+  https://cyrix-8nx4.onrender.com
+
+--------------------------------------------------------
+CREDENCIAIS DE ACESSO
+(Login em 2 passos: password + 1 palavra de segurança 2FA)
+--------------------------------------------------------
+
+ADMINISTRADOR
+  Email:      admin@cyrix.pt
+  Password:   admin123
+  Palavra 2FA (basta uma):  seguranca  |  firewall  |  cifra
+
+GESTOR
+  Email:      manager@cyrix.pt
+  Password:   manager123
+  Palavra 2FA (basta uma):  protecao  |  ameaca  |  escudo
+
+CLIENTE
+  Email:      cliente@empresa.pt
+  Password:   client123
+  Palavra 2FA (basta uma):  privacidade  |  codigo  |  autenticacao
+
+--------------------------------------------------------
+NOTAS TÉCNICAS
+--------------------------------------------------------
+- 1.º acesso pode demorar ~30-50s: o backend (plano gratuito Render)
+  "adormece" quando está parado e demora a acordar. Aguardar e tentar
+  o login novamente.
+- Base de dados: PostgreSQL (Neon).
+- Backend: Node.js + Express + Sequelize (Render).
+- Frontend: React + Vite (Vercel).
+========================================================

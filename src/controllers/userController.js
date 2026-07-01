@@ -153,14 +153,14 @@ exports.user_update_me = async (req, res) => {
 // POST /users/create  (o hash da password e feito pelo model - hook beforeCreate)
 exports.user_create = async (req, res) => {
   try {
-    const { name, email, password_hash, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone } = req.body;
+    const { name, email, password_hash, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone, twofa_word1, twofa_word2, twofa_word3 } = req.body;
     if (!name || !email || !password_hash) {
       return res.status(400).json({ error: 'Nome, email e password sao obrigatorios.' });
     }
     if (passwordCurta(password_hash)) {
       return res.status(400).json({ error: 'A password deve ter pelo menos 6 caracteres.' });
     }
-    const novo = await User.create({ name, email, password_hash, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone });
+    const novo = await User.create({ name, email, password_hash, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone, twofa_word1: twofa_word1 || null, twofa_word2: twofa_word2 || null, twofa_word3: twofa_word3 || null });
     recordAudit(req, { action: `Utilizador criado: ${email} (${role})`, category: 'users', severity: 'info' });
     res.status(201).json(publicUser(novo));
   } catch (e) {
@@ -176,7 +176,7 @@ exports.user_update = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ error: 'Utilizador nao encontrado' });
-    const { name, email, password_hash, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone } = req.body;
+    const { name, email, password_hash, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone, twofa_word1, twofa_word2, twofa_word3 } = req.body;
     if (password_hash && passwordCurta(password_hash)) {
       return res.status(400).json({ error: 'A password deve ter pelo menos 6 caracteres.' });
     }

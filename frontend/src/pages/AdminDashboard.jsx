@@ -22,6 +22,7 @@ const ShieldIcon = () => (
 
 const BLANK_USER_FORM = {
   role: 'client', name: '', email: '', phone: '', password: '',
+  word1: '', word2: '', word3: '',
   securityName: '', securityEmail: '', securityPhone: '',
   contactName: '', contactEmail: '', contactPhone: '',
 };
@@ -383,6 +384,7 @@ export default function AdminDashboard() {
         phone: userForm.phone,
         so_name: userForm.securityName, so_email: userForm.securityEmail, so_phone: userForm.securityPhone,
         pc_name: userForm.contactName, pc_email: userForm.contactEmail, pc_phone: userForm.contactPhone,
+        word1: userForm.word1, word2: userForm.word2, word3: userForm.word3,
       });
       const nu = { id: String(created.id), name: created.name, email: created.email, phone: '', role: created.role, company: created.company || '', active: created.active };
       setUsers(prev => [...prev, nu]);
@@ -952,6 +954,15 @@ export default function AdminDashboard() {
                   <div className="form-group"><label className="label">Email *</label><input className="input" type="email" value={userForm.email} onChange={e => setUserForm({ ...userForm, email: e.target.value })} required /></div>
                   <div className="form-group"><label className="label">Telefone</label><input className="input" type="tel" value={userForm.phone} onChange={e => setUserForm({ ...userForm, phone: e.target.value })} placeholder="+351 9XX XXX XXX" /></div>
                   <div className="form-group"><label className="label">Palavra-passe inicial *</label><input className="input" type="password" value={userForm.password} onChange={e => setUserForm({ ...userForm, password: e.target.value })} required /></div>
+                </div>
+                <div style={{ margin: '1rem 0 0.75rem', borderTop: '1px solid var(--slate-200)', paddingTop: '1rem' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--slate-500)', marginBottom: '0.25rem' }}>Palavras de Segurança (2FA)</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)', marginBottom: '0.75rem' }}>Define pelo menos uma. Serão pedidas no 2.º passo do login. Se deixares em branco, a conta entra só com password.</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group"><label className="label">Palavra 1</label><input className="input" value={userForm.word1} onChange={e => setUserForm({ ...userForm, word1: e.target.value })} placeholder="ex: seguranca" /></div>
+                    <div className="form-group"><label className="label">Palavra 2</label><input className="input" value={userForm.word2} onChange={e => setUserForm({ ...userForm, word2: e.target.value })} /></div>
+                    <div className="form-group"><label className="label">Palavra 3</label><input className="input" value={userForm.word3} onChange={e => setUserForm({ ...userForm, word3: e.target.value })} /></div>
+                  </div>
                 </div>
                 {userForm.role === 'client' && (
                   <>
