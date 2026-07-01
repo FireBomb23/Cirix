@@ -14,6 +14,9 @@ const annualServiceRoutes = require('./routes/annualServiceRoutes');
 const auditLogRoutes = require('./routes/auditLogRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const conversationRoutes = require('./routes/conversationRoutes');
+const techAssetRoutes = require('./routes/techAssetRoutes');
+const incidentRoutes = require('./routes/incidentRoutes');
+const pentestRoutes = require('./routes/pentestRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -33,7 +36,7 @@ app.use((req, res, next) => {
 // Rota raiz simples (verificacao rapida)
 app.get('/', (req, res) => {
   res.json({
-    api: 'Ciryx API',
+    api: 'Cyrix API',
     estado: 'online',
     recursos: [
       '/users', '/tickets', '/documents', '/service-requests',
@@ -54,6 +57,9 @@ app.use('/annual-services', annualServiceRoutes);
 app.use('/audit-log', auditLogRoutes);
 app.use('/contact', contactRoutes);
 app.use('/conversations', conversationRoutes);
+app.use('/tech-assets', techAssetRoutes);
+app.use('/incidents', incidentRoutes);
+app.use('/pentests', pentestRoutes);
 
 // Arranque do servidor (apos testar a ligacao a BD)
 async function start() {

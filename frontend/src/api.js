@@ -8,7 +8,7 @@ const api = axios.create({
 
 // Anexa automaticamente o token JWT (se existir) a todos os pedidos.
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('ciryx_token');
+  const token = localStorage.getItem('cyrix_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -20,8 +20,8 @@ api.interceptors.response.use(
   (res) => res,
   (error) => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('ciryx_token');
-      localStorage.removeItem('ciryx_user');
+      localStorage.removeItem('cyrix_token');
+      localStorage.removeItem('cyrix_user');
       const path = window.location.pathname;
       const publicas = ['/', '/login', '/sobre', '/servicos', '/noticias', '/contacto'];
       if (!publicas.includes(path)) {

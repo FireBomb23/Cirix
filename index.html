@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ciryx Cybersecurity</title>
+<title>Cyrix Cybersecurity</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
@@ -372,8 +372,8 @@
 // DATA
 // ============================================================
 const mockUsers = [
-  { id:"1", name:"João Silva", email:"admin@ciryx.pt", password:"admin123", role:"admin", twoFAWords:["segurança","firewall","cifra"] },
-  { id:"2", name:"Maria Santos", email:"manager@ciryx.pt", password:"manager123", role:"manager", twoFAWords:["proteção","ameaça","escudo"] },
+  { id:"1", name:"João Silva", email:"admin@cyrix.pt", password:"admin123", role:"admin", twoFAWords:["segurança","firewall","cifra"] },
+  { id:"2", name:"Maria Santos", email:"manager@cyrix.pt", password:"manager123", role:"manager", twoFAWords:["proteção","ameaça","escudo"] },
   { id:"3", name:"Carlos Oliveira", email:"cliente@empresa.pt", password:"client123", role:"client", company:"Empresa ABC, Lda.", twoFAWords:["privacidade","código","autenticação"] },
 ];
 
@@ -421,16 +421,16 @@ const mockAnnualServices = [
 ];
 
 const mockAuditLog = [
-  { id:"a1", action:"Login realizado", category:"authentication", severity:"info", user:"admin@ciryx.pt", ip:"192.168.1.10", timestamp:"2026-03-16T11:20:00" },
-  { id:"a2", action:"Utilizador criado: cliente@nova.pt", category:"users", severity:"info", user:"admin@ciryx.pt", ip:"192.168.1.10", timestamp:"2026-03-16T10:45:00" },
+  { id:"a1", action:"Login realizado", category:"authentication", severity:"info", user:"admin@cyrix.pt", ip:"192.168.1.10", timestamp:"2026-03-16T11:20:00" },
+  { id:"a2", action:"Utilizador criado: cliente@nova.pt", category:"users", severity:"info", user:"admin@cyrix.pt", ip:"192.168.1.10", timestamp:"2026-03-16T10:45:00" },
   { id:"a3", action:"Falhas de login consecutivas (5x)", category:"security", severity:"critical", user:"desconhecido", ip:"203.0.113.45", timestamp:"2026-03-16T09:30:00" },
-  { id:"a4", action:"Documento enviado: Relatório PenTest Q1", category:"documents", severity:"info", user:"manager@ciryx.pt", ip:"192.168.1.15", timestamp:"2026-03-15T16:00:00" },
-  { id:"a5", action:"Artigo publicado: NIS2 Directive", category:"content", severity:"info", user:"admin@ciryx.pt", ip:"192.168.1.10", timestamp:"2026-03-15T14:30:00" },
+  { id:"a4", action:"Documento enviado: Relatório PenTest Q1", category:"documents", severity:"info", user:"manager@cyrix.pt", ip:"192.168.1.15", timestamp:"2026-03-15T16:00:00" },
+  { id:"a5", action:"Artigo publicado: NIS2 Directive", category:"content", severity:"info", user:"admin@cyrix.pt", ip:"192.168.1.10", timestamp:"2026-03-15T14:30:00" },
   { id:"a6", action:"Ticket urgente criado: Incidente de segurança", category:"system", severity:"warning", user:"cliente@empresa.pt", ip:"10.0.0.25", timestamp:"2026-03-14T16:45:00" },
-  { id:"a7", action:"Permissões alteradas para utilizador manager@ciryx.pt", category:"users", severity:"warning", user:"admin@ciryx.pt", ip:"192.168.1.10", timestamp:"2026-03-14T11:00:00" },
+  { id:"a7", action:"Permissões alteradas para utilizador manager@cyrix.pt", category:"users", severity:"warning", user:"admin@cyrix.pt", ip:"192.168.1.10", timestamp:"2026-03-14T11:00:00" },
   { id:"a8", action:"Backup do sistema realizado", category:"system", severity:"info", user:"sistema", ip:"localhost", timestamp:"2026-03-14T03:00:00" },
-  { id:"a9", action:"Configuração de segurança alterada", category:"security", severity:"warning", user:"admin@ciryx.pt", ip:"192.168.1.10", timestamp:"2026-03-13T15:20:00" },
-  { id:"a10", action:"Exportação de dados realizada", category:"documents", severity:"info", user:"manager@ciryx.pt", ip:"192.168.1.15", timestamp:"2026-03-13T10:10:00" },
+  { id:"a9", action:"Configuração de segurança alterada", category:"security", severity:"warning", user:"admin@cyrix.pt", ip:"192.168.1.10", timestamp:"2026-03-13T15:20:00" },
+  { id:"a10", action:"Exportação de dados realizada", category:"documents", severity:"info", user:"manager@cyrix.pt", ip:"192.168.1.15", timestamp:"2026-03-13T10:10:00" },
 ];
 
 // ============================================================
@@ -450,7 +450,7 @@ let state = {
 
 // Load saved session
 try {
-  const saved = localStorage.getItem('ciryxUser');
+  const saved = localStorage.getItem('cyrixUser');
   if (saved) state.user = JSON.parse(saved);
 } catch(e) {}
 
@@ -576,7 +576,7 @@ function renderNavbar() {
         <a href="#" class="nav-logo" onclick="navigate('home');return false">
           <span class="icon-lg yellow">${icn('shield')}</span>
           <div class="nav-logo-text">
-            <span class="nav-logo-brand">Ciryx</span>
+            <span class="nav-logo-brand">Cyrix</span>
             <span class="nav-logo-sub">Cybersecurity</span>
           </div>
         </a>
@@ -614,7 +614,7 @@ function renderFooter() {
         <div>
           <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem">
             <span class="yellow">${icn('shield')}</span>
-            <span class="footer-heading" style="margin:0">Ciryx</span>
+            <span class="footer-heading" style="margin:0">Cyrix</span>
           </div>
           <p class="text-sm">Empresa líder em soluções de cibersegurança, protegendo o seu negócio contra ameaças digitais.</p>
           </div>
@@ -635,12 +635,12 @@ function renderFooter() {
         </div>
         <div>
           <div class="footer-heading">Contacto</div>
-          <div class="footer-contact-item">${icn('mail')}<span>info@ciryx.pt</span></div>
+          <div class="footer-contact-item">${icn('mail')}<span>info@cyrix.pt</span></div>
           <div class="footer-contact-item">${icn('phone')}<span>+351 210 123 456</span></div>
           <div class="footer-contact-item">${icn('pin')}<span>Lisboa, Portugal</span></div>
         </div>
       </div>
-      <div class="footer-bottom">&copy; ${new Date().getFullYear()} Ciryx Cybersecurity. Todos os direitos reservados.</div>
+      <div class="footer-bottom">&copy; ${new Date().getFullYear()} Cyrix Cybersecurity. Todos os direitos reservados.</div>
     </div>
   </footer>`;
 }
@@ -712,7 +712,7 @@ function renderHome() {
       <div class="container">
         <div class="two-col">
           <div>
-            <h2 class="text-3xl mb-6">Porquê escolher a <span class="yellow-dark">Ciryx?</span></h2>
+            <h2 class="text-3xl mb-6">Porquê escolher a <span class="yellow-dark">Cyrix?</span></h2>
             <div class="why-item"><div class="why-icon"><span class="icon-md yellow-dark">${icn('check-circle')}</span></div><div><h3 class="font-semibold mb-2" style="font-size:1rem">Especialização Técnica</h3><p class="slate-600 text-sm">Equipa certificada com vasta experiência em cibersegurança e conformidade regulamentar</p></div></div>
             <div class="why-item"><div class="why-icon"><span class="icon-md yellow-dark">${icn('file-check')}</span></div><div><h3 class="font-semibold mb-2" style="font-size:1rem">Conformidade NIS I/II</h3><p class="slate-600 text-sm">Apoio especializado no cumprimento das diretivas europeias de cibersegurança</p></div></div>
             <div class="why-item"><div class="why-icon"><span class="icon-md yellow-dark">${icn('shield')}</span></div><div><h3 class="font-semibold mb-2" style="font-size:1rem">Acompanhamento Contínuo</h3><p class="slate-600 text-sm">Monitorização e suporte permanente para garantir a segurança da sua organização</p></div></div>
@@ -759,14 +759,14 @@ function renderAbout() {
   return `
   ${renderNavbar()}
   <div class="page">
-    <section class="page-hero"><div class="container"><h1>Sobre Nós</h1><p class="slate-400">Conheça a Ciryx Cybersecurity e o nosso compromisso com a excelência em cibersegurança</p></div></section>
+    <section class="page-hero"><div class="container"><h1>Sobre Nós</h1><p class="slate-400">Conheça a Cyrix Cybersecurity e o nosso compromisso com a excelência em cibersegurança</p></div></section>
     <section class="section">
       <div class="container">
         <div class="two-col">
           <div>
-            <h2 class="text-3xl mb-4">Ciryx Cybersecurity</h2>
+            <h2 class="text-3xl mb-4">Cyrix Cybersecurity</h2>
             <p class="text-lg slate-600 mb-4 italic">"Protegendo o seu futuro digital"</p>
-            <p class="slate-600">A Ciryx é uma empresa especializada em cibersegurança, dedicada a proteger organizações públicas e privadas contra ameaças digitais. Com uma equipa de especialistas certificados e anos de experiência no mercado, oferecemos soluções personalizadas que garantem a conformidade regulamentar e a proteção dos ativos digitais dos nossos clientes.</p>
+            <p class="slate-600">A Cyrix é uma empresa especializada em cibersegurança, dedicada a proteger organizações públicas e privadas contra ameaças digitais. Com uma equipa de especialistas certificados e anos de experiência no mercado, oferecemos soluções personalizadas que garantem a conformidade regulamentar e a proteção dos ativos digitais dos nossos clientes.</p>
           </div>
           <div style="background:linear-gradient(135deg,var(--slate-700),var(--slate-900));border-radius:1rem;height:360px;display:flex;align-items:center;justify-content:center">
             <span class="icon-3xl" style="color:rgba(234,179,8,.2)">${icn('shield')}</span>
@@ -795,7 +795,7 @@ function renderAbout() {
 
     <section class="cta-section">
       <h2>Junte-se aos nossos clientes</h2>
-      <p>Mais de 200 organizações confiam na Ciryx para proteger os seus ativos digitais</p>
+      <p>Mais de 200 organizações confiam na Cyrix para proteger os seus ativos digitais</p>
       <button class="btn btn-white btn-lg" onclick="navigate('contact')">Fale Connosco <span>${icn('arrow')}</span></button>
     </section>
   </div>
@@ -900,7 +900,7 @@ function renderContact() {
     <section class="section">
       <div class="container">
         <div class="contact-cards">
-          <div class="card text-center"><div class="card-content"><div class="contact-icon"><span class="icon-xl yellow-dark">${icn('mail')}</span></div><h3 class="font-semibold mb-2">Email</h3><p class="slate-600">info@ciryx.pt</p><p class="text-sm slate-600 mt-1">suporte@ciryx.pt</p></div></div>
+          <div class="card text-center"><div class="card-content"><div class="contact-icon"><span class="icon-xl yellow-dark">${icn('mail')}</span></div><h3 class="font-semibold mb-2">Email</h3><p class="slate-600">info@cyrix.pt</p><p class="text-sm slate-600 mt-1">suporte@cyrix.pt</p></div></div>
           <div class="card text-center"><div class="card-content"><div class="contact-icon"><span class="icon-xl yellow-dark">${icn('phone')}</span></div><h3 class="font-semibold mb-2">Telefone</h3><p class="slate-600">+351 210 123 456</p><p class="text-sm slate-600 mt-1">Seg-Sex: 9h-18h</p></div></div>
           <div class="card text-center"><div class="card-content"><div class="contact-icon"><span class="icon-xl yellow-dark">${icn('pin')}</span></div><h3 class="font-semibold mb-2">Morada</h3><p class="slate-600">Av. da Liberdade, 123</p><p class="text-sm slate-600 mt-1">1250-096 Lisboa</p></div></div>
         </div>
@@ -962,7 +962,7 @@ function renderLogin() {
         <a href="#" onclick="navigate('home');return false">
           <span class="icon-2xl yellow">${icn('shield')}</span>
           <div style="margin-left:.75rem;text-align:left">
-            <div style="font-family:Syne,sans-serif;font-weight:700;font-size:1.25rem;color:white">Ciryx</div>
+            <div style="font-family:Syne,sans-serif;font-weight:700;font-size:1.25rem;color:white">Cyrix</div>
             <div style="font-size:.8rem;color:var(--slate-400)">Cybersecurity</div>
           </div>
           </a>
@@ -989,8 +989,8 @@ function renderLogin() {
           `}
           <div class="login-demo mt-6">
             <div class="login-demo-title">Credenciais de demonstração:</div>
-            <div class="login-demo-user"><div class="text-sm"><strong>Admin:</strong> admin@ciryx.pt / admin123</div><div class="login-demo-2fa">2FA: segurança, firewall, cifra</div></div>
-            <div class="login-demo-user"><div class="text-sm"><strong>Gestor:</strong> manager@ciryx.pt / manager123</div><div class="login-demo-2fa">2FA: proteção, ameaça, escudo</div></div>
+            <div class="login-demo-user"><div class="text-sm"><strong>Admin:</strong> admin@cyrix.pt / admin123</div><div class="login-demo-2fa">2FA: segurança, firewall, cifra</div></div>
+            <div class="login-demo-user"><div class="text-sm"><strong>Gestor:</strong> manager@cyrix.pt / manager123</div><div class="login-demo-2fa">2FA: proteção, ameaça, escudo</div></div>
             <div class="login-demo-user"><div class="text-sm"><strong>Cliente:</strong> cliente@empresa.pt / client123</div><div class="login-demo-2fa">2FA: privacidade, código, autenticação</div></div>
           </div>
           <div class="text-center mt-4"><a href="#" class="text-sm yellow-dark" onclick="navigate('home');return false">Voltar ao site</a></div>
@@ -1023,7 +1023,7 @@ function submit2FA() {
   const user = mockUsers.find(u => u.email === state.loginEmail);
   if (user && w1 !== w2 && user.twoFAWords.includes(w1) && user.twoFAWords.includes(w2)) {
     state.user = {id:user.id,name:user.name,email:user.email,role:user.role,company:user.company};
-    localStorage.setItem('ciryxUser', JSON.stringify(state.user));
+    localStorage.setItem('cyrixUser', JSON.stringify(state.user));
     state.loginStep = 'credentials';
     state.loginEmail = '';
     toast(`Bem-vindo/a, ${user.name}!`);
@@ -1036,7 +1036,7 @@ function submit2FA() {
 
 function logout() {
   state.user = null;
-  localStorage.removeItem('ciryxUser');
+  localStorage.removeItem('cyrixUser');
   toast('Sessão terminada.','');
   navigate('home');
 }
@@ -1059,7 +1059,7 @@ function renderSidebar(links, activeKey) {
   <div class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <span class="icon-lg yellow">${icn('shield')}</span>
-      <div><div class="sidebar-logo-text">Ciryx</div><div class="sidebar-logo-sub">Cybersecurity</div></div>
+      <div><div class="sidebar-logo-text">Cyrix</div><div class="sidebar-logo-sub">Cybersecurity</div></div>
     </div>
     <div class="sidebar-user">
       <div class="sidebar-user-name">${u.name}</div>

@@ -3,6 +3,6 @@
 require('dotenv').config();
 
 module.exports = {
-  jwtSecret: process.env.JWT_SECRET || 'ciryx-dev-secret-trocar-em-producao',
+  jwtSecret: process.env.JWT_SECRET || 'cyrix-dev-secret-trocar-em-producao',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '2h',
 };

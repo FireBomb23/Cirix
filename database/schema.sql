@@ -1,5 +1,5 @@
 -- ============================================================
--- Ciryx - Esquema OFICIAL da base de dados "projeto_BD" (PostgreSQL)
+-- Cyrix - Esquema OFICIAL da base de dados "projeto_BD" (PostgreSQL)
 -- Fonte partilhada entre o projeto Django (BD/) e o projeto AI2 (src/ + frontend/).
 -- Correr numa base de dados projeto_BD vazia.
 -- ============================================================
@@ -24,10 +24,10 @@ CREATE TABLE users (
 
 -- Inserção de dados de teste na tabela users.
 -- As passwords sao guardadas com hash bcrypt (como na Aula 11). Passwords reais (para login):
---   admin@ciryx.pt -> admin123 | manager@ciryx.pt -> manager123 | cliente@empresa.pt -> client123
+--   admin@cyrix.pt -> admin123 | manager@cyrix.pt -> manager123 | cliente@empresa.pt -> client123
 INSERT INTO users (name, email, password_hash, role, twofa_word1, twofa_word2, twofa_word3) VALUES
-('João Silva', 'admin@ciryx.pt', '$2b$10$Smo3ndzdnCW6Xov6xxCqGusKvu5jbpVUYwr44lXY.2fzobrnohYyu', 'admin', 'segurança', 'firewall', 'cifra'),
-('Maria Santos', 'manager@ciryx.pt', '$2b$10$ngcEDHBDTUY7b7mSVsJE1uUgrDATHqpbuBjcOSZ1KjUqYAnUu7UCi', 'manager', 'proteção', 'ameaça', 'escudo');
+('João Silva', 'admin@cyrix.pt', '$2b$10$Smo3ndzdnCW6Xov6xxCqGusKvu5jbpVUYwr44lXY.2fzobrnohYyu', 'admin', 'segurança', 'firewall', 'cifra'),
+('Maria Santos', 'manager@cyrix.pt', '$2b$10$ngcEDHBDTUY7b7mSVsJE1uUgrDATHqpbuBjcOSZ1KjUqYAnUu7UCi', 'manager', 'proteção', 'ameaça', 'escudo');
 
 INSERT INTO users (name, email, password_hash, role, company, twofa_word1, twofa_word2, twofa_word3) VALUES
 ('Carlos Oliveira', 'cliente@empresa.pt', '$2b$10$jxoGXkgJ3OKE3QRHzhpPU.qR7MP6DI/LwPRTvWk1mqH5CqC.Ask8e', 'client', 'Empresa ABC, Lda.', 'privacidade', 'código', 'autenticação');
@@ -293,16 +293,16 @@ CREATE TABLE audit_log (
 );
 
 INSERT INTO audit_log (action, category, severity, user_id, user_email, ip_address, created_at) VALUES
-('Login realizado', 'authentication', 'info', 1, 'admin@ciryx.pt', '192.168.1.10', '2026-03-16 11:20:00'),
-('Utilizador criado: cliente@nova.pt', 'users', 'info', 1, 'admin@ciryx.pt', '192.168.1.10', '2026-03-16 10:45:00'),
+('Login realizado', 'authentication', 'info', 1, 'admin@cyrix.pt', '192.168.1.10', '2026-03-16 11:20:00'),
+('Utilizador criado: cliente@nova.pt', 'users', 'info', 1, 'admin@cyrix.pt', '192.168.1.10', '2026-03-16 10:45:00'),
 ('Falhas de login consecutivas (5x)', 'security', 'critical', NULL, 'desconhecido', '203.0.113.45', '2026-03-16 09:30:00'),
-('Documento enviado: Relatório PenTest Q1', 'documents', 'info', 2, 'manager@ciryx.pt', '192.168.1.15', '2026-03-15 16:00:00'),
-('Artigo publicado: NIS2 Directive', 'content', 'info', 1, 'admin@ciryx.pt', '192.168.1.10', '2026-03-15 14:30:00'),
+('Documento enviado: Relatório PenTest Q1', 'documents', 'info', 2, 'manager@cyrix.pt', '192.168.1.15', '2026-03-15 16:00:00'),
+('Artigo publicado: NIS2 Directive', 'content', 'info', 1, 'admin@cyrix.pt', '192.168.1.10', '2026-03-15 14:30:00'),
 ('Ticket urgente criado: Incidente segurança', 'system', 'warning', 3, 'cliente@empresa.pt', '10.0.0.25', '2026-03-14 16:45:00'),
-('Permissões alteradas: manager@ciryx.pt', 'users', 'warning', 1, 'admin@ciryx.pt', '192.168.1.10', '2026-03-14 11:00:00'),
+('Permissões alteradas: manager@cyrix.pt', 'users', 'warning', 1, 'admin@cyrix.pt', '192.168.1.10', '2026-03-14 11:00:00'),
 ('Backup do sistema realizado', 'system', 'info', NULL, 'sistema', 'localhost', '2026-03-14 03:00:00'),
-('Configuração de segurança alterada', 'security', 'warning', 1, 'admin@ciryx.pt', '192.168.1.10', '2026-03-13 15:20:00'),
-('Exportação de dados realizada', 'documents', 'info', 2, 'manager@ciryx.pt', '192.168.1.15', '2026-03-13 10:10:00');
+('Configuração de segurança alterada', 'security', 'warning', 1, 'admin@cyrix.pt', '192.168.1.10', '2026-03-13 15:20:00'),
+('Exportação de dados realizada', 'documents', 'info', 2, 'manager@cyrix.pt', '192.168.1.15', '2026-03-13 10:10:00');
 
 
 -- ============================================================

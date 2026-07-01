@@ -9,8 +9,8 @@ const ShieldIcon = () => (
 );
 
 const DEMO_USERS = [
-  { email: 'admin@ciryx.pt', password: 'admin123', role: 'Administrador', words: 'segurança, firewall, cifra' },
-  { email: 'manager@ciryx.pt', password: 'manager123', role: 'Gestor', words: 'proteção, ameaça, escudo' },
+  { email: 'admin@cyrix.pt', password: 'admin123', role: 'Administrador', words: 'segurança, firewall, cifra' },
+  { email: 'manager@cyrix.pt', password: 'manager123', role: 'Gestor', words: 'proteção, ameaça, escudo' },
   { email: 'cliente@empresa.pt', password: 'client123', role: 'Cliente', words: 'privacidade, código, autenticação' },
 ];
 
@@ -70,7 +70,7 @@ export default function Login() {
         <button className="login-logo" onClick={() => navigate('/')}>
           <ShieldIcon />
           <div className="login-logo-text">
-            <span className="login-logo-brand">Ciryx</span>
+            <span className="login-logo-brand">Cyrix</span>
             <span className="login-logo-sub">Cybersecurity</span>
           </div>
         </button>
@@ -157,6 +157,7 @@ export default function Login() {
             </div>
           </div>
         </div>
+        <button type="button" className="btn w-full" style={{ marginTop: '1rem', color: 'var(--slate-600)', background: 'none' }} onClick={() => navigate('/')}>← Voltar ao site</button>
       </div>
     </div>
   );

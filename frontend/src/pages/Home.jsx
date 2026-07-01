@@ -44,7 +44,7 @@ export default function Home() {
         <div className="container hero-inner">
           <h1>Cibersegurança para organizações<br />que <span>não podem parar</span></h1>
           <p>
-            A Ciryx apoia organizações de setores críticos no cumprimento da Diretiva NIS2,
+            A Cyrix apoia organizações de setores críticos no cumprimento da Diretiva NIS2,
             na gestão de riscos cibernéticos e na construção de uma postura de segurança resiliente.
           </p>
           <div className="hero-actions">
@@ -102,7 +102,7 @@ export default function Home() {
       <section className="section section-bg">
         <div className="container two-col">
           <div>
-            <h2 style={{ fontSize: '2rem', marginBottom: '1.5rem' }}>Por que escolher a Ciryx?</h2>
+            <h2 style={{ fontSize: '2rem', marginBottom: '1.5rem' }}>Por que escolher a Cyrix?</h2>
             <div className="why-item">
               <div className="why-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--yellow-dark)' }}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
@@ -249,7 +249,7 @@ export default function Home() {
       <section className="cta-section">
         <div className="container">
           <h2>Pronto para Proteger a sua Organização?</h2>
-          <p>Junte-se a mais de 150 empresas que confiam na Ciryx para a sua segurança cibernética e conformidade regulatória.</p>
+          <p>Junte-se a mais de 150 empresas que confiam na Cyrix para a sua segurança cibernética e conformidade regulatória.</p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className="btn btn-white btn-lg" onClick={() => navigate('/contacto')}>Agendar Consulta Gratuita</button>
             <button className="btn btn-outline btn-lg" onClick={() => navigate('/servicos')}>Conhecer os Serviços</button>

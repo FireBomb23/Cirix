@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiGetTeam } from '../apiService.js';
 
 export default function About() {
   const navigate = useNavigate();
-  const [team, setTeam] = useState([]);
-
-  useEffect(() => {
-    apiGetTeam().then(setTeam).catch(() => setTeam([]));
-  }, []);
+  // Equipa do projeto — alunos do 2.º ano de TDM
+  const team = [
+    { name: 'Rodrigo Albuquerque', role: '2.º ano de TDM', initials: 'RA' },
+    { name: 'Ana Costa', role: '2.º ano de TDM', initials: 'AC' },
+    { name: 'Catarina Caló', role: '2.º ano de TDM', initials: 'CC' },
+    { name: 'Matilde Ângelo', role: '2.º ano de TDM', initials: 'MÂ' },
+  ];
 
   return (
     <>
@@ -62,7 +62,7 @@ export default function About() {
           <div>
             <h2 style={{ fontSize: '2rem', marginBottom: '1.5rem' }}>A Nossa História</h2>
             <p style={{ color: 'var(--slate-600)', marginBottom: '1rem' }}>
-              Fundada em 2016, a Ciryx nasceu da visão de criar uma empresa portuguesa de referência em cibersegurança. Com base em Viseu, crescemos para servir organizações em todo o país.
+              Fundada em 2016, a Cyrix nasceu da visão de criar uma empresa portuguesa de referência em cibersegurança. Com base em Viseu, crescemos para servir organizações em todo o país.
             </p>
             <p style={{ color: 'var(--slate-600)', marginBottom: '1rem' }}>
               Ao longo de mais de uma década, especializámo-nos em conformidade NIS2, testes de intrusão e avaliações de maturidade, ajudando mais de 150 organizações a fortalecer a sua postura de segurança.
@@ -92,7 +92,7 @@ export default function About() {
         <div className="container">
           <div className="text-center mb-8">
             <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>A Nossa Equipa</h2>
-            <p style={{ color: 'var(--slate-600)', maxWidth: 500, margin: '0 auto' }}>Profissionais certificados e apaixonados por cibersegurança.</p>
+            <p style={{ color: 'var(--slate-600)', maxWidth: 500, margin: '0 auto' }}>Projeto desenvolvido por alunos do 2.º ano de TDM.</p>
           </div>
           <div className="team-grid">
             {team.map((m, i) => (

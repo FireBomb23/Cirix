@@ -59,4 +59,4 @@ def home(request):
         'dashboard_json': json.dumps(dashboard, default=str),
     }
 
-    return render(request, 'portal/ciryx.html', contexto)
+    return render(request, 'portal/cyrix.html', contexto)

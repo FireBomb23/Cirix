@@ -12,7 +12,7 @@ export async function apiGetUsers() {
   return data; // array de utilizadores (sem password_hash)
 }
 
-export async function apiCreateUser({ name, email, password, role, company }) {
+export async function apiCreateUser({ name, email, password, role, company, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone }) {
   const { data } = await api.post('/users/create', {
     name,
     email,
@@ -20,6 +20,9 @@ export async function apiCreateUser({ name, email, password, role, company }) {
     role,
     company: company || '',
     active: true,
+    phone: phone || null,
+    so_name: so_name || null, so_email: so_email || null, so_phone: so_phone || null,
+    pc_name: pc_name || null, pc_email: pc_email || null, pc_phone: pc_phone || null,
   });
   return data;
 }
@@ -103,7 +106,7 @@ function normalizeTicket(t) {
     status: t.status || 'open',
     clientId: String(t.client_id ?? t.clientId ?? ''),
     clientName: t.cliente?.name || t.clientName || '',
-    assignedTo: t.responsavel?.name || 'Equipa Ciryx',
+    assignedTo: t.responsavel?.name || 'Equipa Cyrix',
     comments: Array.isArray(t.comments) ? t.comments.map(normalizeComment) : [],
     created_at: t.created_at || new Date().toISOString(),
   };
@@ -125,6 +128,12 @@ export async function apiCreateDocument(fields) {
 export async function apiGetDocument(id) {
   const { data } = await api.get(`/documents/${id}`);
   return normalizeDocument(data);
+}
+
+// Remove um documento (apenas admin/gestor no backend)
+export async function apiDeleteDocument(id) {
+  const { data } = await api.delete(`/documents/delete/${id}`);
+  return data;
 }
 
 function normalizeDocument(d) {
@@ -351,5 +360,80 @@ function normalizeMessageLine(m) {
     role: m.sender?.role || '',
     text: m.content,
     date: m.sent_at || new Date().toISOString(),
+  };
+}
+
+// ── ATIVOS TECNOLÓGICOS ──────────────────────────────────────────────────────
+export async function apiGetTechAssets(clientId) {
+  const { data } = await api.get('/tech-assets', { params: clientId ? { client_id: clientId } : {} });
+  return data.map(normalizeAsset);
+}
+export async function apiCreateTechAsset(fields) {
+  const { data } = await api.post('/tech-assets/create', fields);
+  return normalizeAsset(data);
+}
+export async function apiBulkTechAssets(items, clientId) {
+  const { data } = await api.post('/tech-assets/bulk', { items, client_id: clientId });
+  return data; // { inserted }
+}
+export async function apiDeleteTechAsset(id) {
+  const { data } = await api.delete(`/tech-assets/delete/${id}`);
+  return data;
+}
+function normalizeAsset(a) {
+  return {
+    id: String(a.id), name: a.name, assetType: a.asset_type || '—',
+    quantity: a.quantity ?? 1, location: a.location || '—',
+    criticality: a.criticality || 'media', notes: a.notes || '',
+    clientId: String(a.client_id), clientName: a.cliente?.name || '',
+    date: a.created_at ? String(a.created_at).slice(0, 10) : '',
+  };
+}
+
+// ── INCIDENTES DE SEGURANÇA ──────────────────────────────────────────────────
+export async function apiGetIncidents(clientId) {
+  const { data } = await api.get('/incidents', { params: clientId ? { client_id: clientId } : {} });
+  return data.map(normalizeIncident);
+}
+export async function apiCreateIncident(fields) {
+  const { data } = await api.post('/incidents/create', fields);
+  return normalizeIncident(data);
+}
+export async function apiUpdateIncident(id, fields) {
+  const { data } = await api.put(`/incidents/update/${id}`, fields);
+  return normalizeIncident(data);
+}
+export async function apiDeleteIncident(id) {
+  const { data } = await api.delete(`/incidents/delete/${id}`);
+  return data;
+}
+function normalizeIncident(i) {
+  return {
+    id: String(i.id), title: i.title, date: i.incident_date || '',
+    category: i.category || '—', severity: i.severity || 'media',
+    description: i.description || '', impact: i.impact || '', actions: i.actions || '',
+    status: i.status || 'aberto', clientId: String(i.client_id), clientName: i.cliente?.name || '',
+  };
+}
+
+// ── PEN TESTS ────────────────────────────────────────────────────────────────
+export async function apiGetPentests(clientId) {
+  const { data } = await api.get('/pentests', { params: clientId ? { client_id: clientId } : {} });
+  return data.map(normalizePentest);
+}
+export async function apiCreatePentest(fields) {
+  const { data } = await api.post('/pentests/create', fields);
+  return normalizePentest(data);
+}
+export async function apiDeletePentest(id) {
+  const { data } = await api.delete(`/pentests/delete/${id}`);
+  return data;
+}
+function normalizePentest(p) {
+  return {
+    id: String(p.id), title: p.title, date: p.test_date || '', scope: p.scope || '—',
+    summary: p.summary || '', critico: p.critico ?? 0, alto: p.alto ?? 0,
+    medio: p.medio ?? 0, baixo: p.baixo ?? 0,
+    clientId: String(p.client_id), clientName: p.cliente?.name || '',
   };
 }

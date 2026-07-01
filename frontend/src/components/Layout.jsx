@@ -36,7 +36,7 @@ export default function Layout() {
           <button className="nav-logo" onClick={() => go('/')}>
             <ShieldIcon />
             <div className="nav-logo-text">
-              <span className="nav-logo-brand">Ciryx</span>
+              <span className="nav-logo-brand">Cyrix</span>
               <span className="nav-logo-sub">Cybersecurity</span>
             </div>
           </button>
@@ -126,7 +126,7 @@ export default function Layout() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '1rem', cursor: 'pointer' }} onClick={() => go('/')}>
                 <ShieldIcon />
                 <div>
-                  <div className="footer-heading" style={{ marginBottom: 0 }}>Ciryx</div>
+                  <div className="footer-heading" style={{ marginBottom: 0 }}>Cyrix</div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--slate-400)' }}>Cybersecurity</div>
                 </div>
               </div>
@@ -167,7 +167,7 @@ export default function Layout() {
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ flexShrink: 0, color: 'var(--yellow)' }}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <span>info@ciryx.pt</span>
+                <span>info@cyrix.pt</span>
               </div>
               <div className="footer-contact-item">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ flexShrink: 0, color: 'var(--yellow)' }}>
@@ -178,7 +178,7 @@ export default function Layout() {
             </div>
           </div>
           <div className="footer-bottom">
-            &copy; 2026 Ciryx Cybersecurity. Todos os direitos reservados. Projeto Académico — ESTGV.
+            &copy; 2026 Cyrix Cybersecurity. Todos os direitos reservados. Projeto Académico — ESTGV.
           </div>
         </div>
       </footer>

@@ -7,7 +7,7 @@ frontend/node_modules/
 frontend/dist/
 
 # Zip de entrega (artefacto, nao deve ir para o repositorio)
-entrega_AI2_Ciryx.zip
+entrega_AI2_Cyrix.zip
 *.zip
 
 # Variaveis de ambiente (contem credenciais da BD)

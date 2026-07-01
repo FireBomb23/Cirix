@@ -8,7 +8,7 @@ const { sequelize, User } = require('../models');
 const DEMO_USERS = [
   {
     name: 'João Silva',
-    email: 'admin@ciryx.pt',
+    email: 'admin@cyrix.pt',
     password: 'admin123',
     role: 'admin',
     company: null,
@@ -19,7 +19,7 @@ const DEMO_USERS = [
   },
   {
     name: 'Maria Santos',
-    email: 'manager@ciryx.pt',
+    email: 'manager@cyrix.pt',
     password: 'manager123',
     role: 'manager',
     company: null,
@@ -61,8 +61,8 @@ async function seed() {
 
     console.log('\n✅ Seed concluído! Utilizadores de demo prontos (passwords com hash bcrypt).');
     console.log('\nCredenciais:');
-    console.log('  admin@ciryx.pt     / admin123    (role: admin)');
-    console.log('  manager@ciryx.pt   / manager123  (role: manager)');
+    console.log('  admin@cyrix.pt     / admin123    (role: admin)');
+    console.log('  manager@cyrix.pt   / manager123  (role: manager)');
     console.log('  cliente@empresa.pt / client123   (role: client)');
   } catch (e) {
     console.error('❌ Erro:', e.message || String(e));

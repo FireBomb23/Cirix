@@ -30,8 +30,8 @@ const MIN_PW = 6;
 const passwordCurta = (p) => !p || String(p).length < MIN_PW;
 
 // Protecao simples contra forca-bruta no login (sem dependencias, em memoria)
-const LOGIN_MAX = 5;
-const LOGIN_WINDOW = 15 * 60 * 1000; // 15 minutos
+const LOGIN_MAX = 10;
+const LOGIN_WINDOW = 5 * 60 * 1000; // 5 minutos
 const loginFails = new Map(); // email -> { count, first }
 function loginBloqueado(email) {
   const r = loginFails.get(email);
@@ -153,14 +153,14 @@ exports.user_update_me = async (req, res) => {
 // POST /users/create  (o hash da password e feito pelo model - hook beforeCreate)
 exports.user_create = async (req, res) => {
   try {
-    const { name, email, password_hash, role, company, active } = req.body;
+    const { name, email, password_hash, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone } = req.body;
     if (!name || !email || !password_hash) {
       return res.status(400).json({ error: 'Nome, email e password sao obrigatorios.' });
     }
     if (passwordCurta(password_hash)) {
       return res.status(400).json({ error: 'A password deve ter pelo menos 6 caracteres.' });
     }
-    const novo = await User.create({ name, email, password_hash, role, company, active });
+    const novo = await User.create({ name, email, password_hash, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone });
     recordAudit(req, { action: `Utilizador criado: ${email} (${role})`, category: 'users', severity: 'info' });
     res.status(201).json(publicUser(novo));
   } catch (e) {
@@ -176,12 +176,12 @@ exports.user_update = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ error: 'Utilizador nao encontrado' });
-    const { name, email, password_hash, role, company, active } = req.body;
+    const { name, email, password_hash, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone } = req.body;
     if (password_hash && passwordCurta(password_hash)) {
       return res.status(400).json({ error: 'A password deve ter pelo menos 6 caracteres.' });
     }
     const eraAtivo = user.active;
-    const dados = { name, email, role, company, active };
+    const dados = { name, email, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone };
     if (password_hash) dados.password_hash = password_hash;
     await user.update(dados);
     if (active !== undefined && active !== eraAtivo) {

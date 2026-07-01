@@ -10,6 +10,15 @@ const User = sequelize.define('User', {
   password_hash: { type: DataTypes.STRING, allowNull: false },
   role: { type: DataTypes.STRING, allowNull: false }, // 'admin' | 'manager' | 'client'
   company: { type: DataTypes.STRING },
+  phone: { type: DataTypes.STRING },
+  // Responsável de Segurança
+  so_name: { type: DataTypes.STRING },
+  so_email: { type: DataTypes.STRING },
+  so_phone: { type: DataTypes.STRING },
+  // Contacto Permanente
+  pc_name: { type: DataTypes.STRING },
+  pc_email: { type: DataTypes.STRING },
+  pc_phone: { type: DataTypes.STRING },
   twofa_word1: { type: DataTypes.STRING },
   twofa_word2: { type: DataTypes.STRING },
   twofa_word3: { type: DataTypes.STRING },

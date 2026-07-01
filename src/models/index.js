@@ -14,6 +14,9 @@ const AuditLog = require('./AuditLog');
 const ContactSubmission = require('./ContactSubmission');
 const Conversation = require('./Conversation');
 const MessageLine = require('./MessageLine');
+const TechAsset = require('./TechAsset');
+const SecurityIncident = require('./SecurityIncident');
+const Pentest = require('./Pentest');
 
 // Tickets: cliente (client_id) e responsavel (assigned_to) sao utilizadores.
 Ticket.belongsTo(User, { foreignKey: 'client_id', as: 'cliente' });
@@ -58,6 +61,11 @@ Conversation.hasMany(MessageLine, { foreignKey: 'conversation_id', as: 'messages
 MessageLine.belongsTo(Conversation, { foreignKey: 'conversation_id' });
 MessageLine.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 
+// Categorias do cliente: ativos tecnologicos, incidentes e pentests.
+TechAsset.belongsTo(User, { foreignKey: 'client_id', as: 'cliente' });
+SecurityIncident.belongsTo(User, { foreignKey: 'client_id', as: 'cliente' });
+Pentest.belongsTo(User, { foreignKey: 'client_id', as: 'cliente' });
+
 module.exports = {
   sequelize,
   User,
@@ -74,4 +82,7 @@ module.exports = {
   ContactSubmission,
   Conversation,
   MessageLine,
+  TechAsset,
+  SecurityIncident,
+  Pentest,
 };

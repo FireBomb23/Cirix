@@ -5,10 +5,11 @@ import {
   apiGetUsers, apiCreateUser, apiToggleUserActive,
   apiGetTickets, apiUpdateTicketStatus, apiGetTicketComments, apiCreateTicketComment,
   apiGetArticles, apiCreateArticle, apiUpdateArticle, apiDeleteArticle,
-  apiGetDocuments, apiCreateDocument, apiGetDocument, apiGetAnnualServices, apiGetAuditLog,
+  apiGetDocuments, apiCreateDocument, apiGetDocument, apiDeleteDocument, apiGetAnnualServices, apiGetAuditLog,
   apiGetMessages, apiMarkMessageRead, apiReplyMessage,
   apiGetConversations, apiEnsureConversation, apiGetConversationMessages, apiSendConversationMessage,
   apiUpdateMe,
+  apiGetTechAssets, apiGetIncidents, apiGetPentests,
 } from '../apiService.js';
 
 const ShieldIcon = () => (
@@ -110,10 +111,14 @@ export default function AdminDashboard() {
         const norm = apiUsers.map(u => ({
           id: String(u.id), name: u.name, email: u.email,
           role: u.role, company: u.company || '', phone: u.phone || '', active: u.active,
+          so_name: u.so_name, so_email: u.so_email, so_phone: u.so_phone,
+          pc_name: u.pc_name, pc_email: u.pc_email, pc_phone: u.pc_phone,
         }));
         setUsers(norm);
         setClients(norm.filter(u => u.role === 'client').map(u => ({
-          ...u, sector: '', createdAt: '', securityContact: {}, permanentContact: {},
+          ...u, sector: '', createdAt: '',
+          securityContact: { name: u.so_name, email: u.so_email, phone: u.so_phone },
+          permanentContact: { name: u.pc_name, email: u.pc_email, phone: u.pc_phone },
         })));
       })
       .catch((e) => { if (e.response?.status !== 401) showToast('Não foi possível carregar alguns dados.', 'error'); });
@@ -181,7 +186,7 @@ export default function AdminDashboard() {
       setChatConv(conv);
       const msgs = await apiGetConversationMessages(conv.id);
       setChatMessages(msgs);
-      localStorage.setItem('ciryx_seen_' + conv.id, new Date().toISOString());
+      localStorage.setItem('cyrix_seen_' + conv.id, new Date().toISOString());
       setUnreadPeers(prev => { const n = new Set(prev); n.delete(String(peer.id)); return n; });
     } catch {
       showToast('Erro ao abrir conversa.', 'error');
@@ -213,7 +218,7 @@ export default function AdminDashboard() {
       convs.forEach(c => {
         const other = (c.participant1 && c.participant1.id !== String(user.id)) ? c.participant1 : c.participant2;
         if (!other || !c.lastMessageAt || !c.lastSenderId || c.lastSenderId === String(user.id)) return;
-        const seen = localStorage.getItem('ciryx_seen_' + c.id);
+        const seen = localStorage.getItem('cyrix_seen_' + c.id);
         if (!seen || new Date(c.lastMessageAt) > new Date(seen)) s.add(other.id);
       });
       setUnreadPeers(s);
@@ -275,10 +280,24 @@ export default function AdminDashboard() {
     try {
       const full = d.fileData ? d : await apiGetDocument(d.id);
       if (!full.fileData) { showToast('Este documento não tem ficheiro guardado.', 'error'); return; }
+      const blob = await (await fetch(full.fileData)).blob();
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = full.fileData; a.download = full.name;
+      a.href = url; a.download = full.name;
       document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
     } catch { showToast('Erro ao transferir o documento.', 'error'); }
+  };
+
+  const deleteDoc = async (d) => {
+    if (!window.confirm(`Remover o documento "${d.name}"?`)) return;
+    try {
+      await apiDeleteDocument(d.id);
+      setDocuments(await apiGetDocuments());
+      showToast('Documento removido.');
+    } catch (err) {
+      showToast('Erro ao remover: ' + (err.response?.data?.error || err.message), 'error');
+    }
   };
 
   const uploadClientDoc = async (cid, file, category = 'Documentação') => {
@@ -358,7 +377,13 @@ export default function AdminDashboard() {
   const saveUser = async (e) => {
     e.preventDefault();
     try {
-      const created = await apiCreateUser({ name: userForm.name, email: userForm.email, password: userForm.password, role: userForm.role, company: userForm.role === 'client' ? '' : 'Ciryx' });
+      const created = await apiCreateUser({
+        name: userForm.name, email: userForm.email, password: userForm.password, role: userForm.role,
+        company: userForm.role === 'client' ? '' : 'Cyrix',
+        phone: userForm.phone,
+        so_name: userForm.securityName, so_email: userForm.securityEmail, so_phone: userForm.securityPhone,
+        pc_name: userForm.contactName, pc_email: userForm.contactEmail, pc_phone: userForm.contactPhone,
+      });
       const nu = { id: String(created.id), name: created.name, email: created.email, phone: '', role: created.role, company: created.company || '', active: created.active };
       setUsers(prev => [...prev, nu]);
       if (created.role === 'client') {
@@ -379,11 +404,15 @@ export default function AdminDashboard() {
 
   // ─── CLIENT DETAIL ────────────────────────────────────────────────────────
   const ClientDetail = ({ client }) => {
-    // Sem tabelas na API partilhada para risco/ativos/incidentes/pentests -> estado vazio.
-    const risco = null;
-    const ativos = [];
-    const incidentes = [];
-    const penTests = [];
+    const risco = null; // avaliacao de risco: sem fonte estruturada ainda
+    const [ativos, setAtivos] = useState([]);
+    const [incidentes, setIncidentes] = useState([]);
+    const [penTests, setPenTests] = useState([]);
+    useEffect(() => {
+      apiGetTechAssets(client.id).then(setAtivos).catch(() => {});
+      apiGetIncidents(client.id).then(setIncidentes).catch(() => {});
+      apiGetPentests(client.id).then(setPenTests).catch(() => {});
+    }, [client.id]);
     const docs = documents.filter(d => d.clientId === client.id);
 
     const TABS = [
@@ -394,6 +423,8 @@ export default function AdminDashboard() {
 
     const critBadge = (c) => { const m = { 'crítico': 'badge-red', 'alto': 'badge-orange', 'médio': 'badge-yellow', 'baixo': 'badge-gray' }; return <span className={`badge ${m[c] || 'badge-gray'}`}>{c}</span>; };
     const sevBadge = (s) => { const m = { critical: 'badge-red', high: 'badge-orange', medium: 'badge-yellow', low: 'badge-gray' }; const l = { critical: 'Crítico', high: 'Alto', medium: 'Médio', low: 'Baixo' }; return <span className={`badge ${m[s] || 'badge-gray'}`}>{l[s] || s}</span>; };
+    const critBadgePt = (c) => { const m = { critica: 'badge-red', alta: 'badge-orange', media: 'badge-yellow', baixa: 'badge-gray' }; const l = { critica: 'Crítica', alta: 'Alta', media: 'Média', baixa: 'Baixa' }; return <span className={`badge ${m[c] || 'badge-gray'}`}>{l[c] || c}</span>; };
+    const statusPt = (s) => { const l = { aberto: 'Aberto', 'em-analise': 'Em análise', resolvido: 'Resolvido', fechado: 'Fechado' }; return <span className="badge badge-gray">{l[s] || s}</span>; };
 
     return (
       <div>
@@ -467,8 +498,8 @@ export default function AdminDashboard() {
             {ativos.length > 0 ? (
               <div className="table-scroll">
                 <table>
-                  <thead><tr><th>Nome</th><th>Tipo</th><th>IP</th><th>Sistema Operativo</th><th>Criticidade</th><th>Estado</th></tr></thead>
-                  <tbody>{ativos.map(a => <tr key={a.id}><td style={{ fontWeight: 500 }}>{a.nome}</td><td><span className="badge badge-blue">{a.tipo}</span></td><td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{a.ip}</td><td style={{ color: 'var(--slate-500)', fontSize: '0.875rem' }}>{a.so}</td><td>{critBadge(a.criticidade)}</td><td><span className={`badge ${a.estado === 'ativo' ? 'badge-green' : 'badge-gray'}`}>{a.estado}</span></td></tr>)}</tbody>
+                  <thead><tr><th>Nome</th><th>Tipo</th><th>Qtd.</th><th>Localização</th><th>Criticidade</th><th>Data</th></tr></thead>
+                  <tbody>{ativos.map(a => <tr key={a.id}><td style={{ fontWeight: 500 }}>{a.name}</td><td><span className="badge badge-blue">{a.assetType}</span></td><td>{a.quantity}</td><td style={{ color: 'var(--slate-500)', fontSize: '0.875rem' }}>{a.location}</td><td>{critBadgePt(a.criticality)}</td><td style={{ color: 'var(--slate-500)', fontSize: '0.85rem' }}>{a.date}</td></tr>)}</tbody>
                 </table>
               </div>
             ) : <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--slate-400)' }}>Nenhum ativo registado.</div>}
@@ -481,13 +512,13 @@ export default function AdminDashboard() {
               <div key={i.id} className="table-wrap" style={{ padding: '1.25rem 1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
                   <div>
-                    <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{i.titulo}</div>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}><span className="badge badge-blue">{i.tipo}</span>{sevBadge(i.severidade)}{statusBadge(i.estado)}</div>
+                    <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{i.title}</div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}><span className="badge badge-blue">{i.category}</span>{critBadgePt(i.severity)}{statusPt(i.status)}</div>
                   </div>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--slate-400)' }}>{i.data}</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--slate-400)' }}>{i.date}</span>
                 </div>
-                <div style={{ fontSize: '0.875rem', color: 'var(--slate-600)', marginBottom: '0.5rem' }}>{i.descricao}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--slate-500)' }}><strong>Ações:</strong> {i.acoes}</div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--slate-600)', marginBottom: '0.5rem' }}>{i.description}</div>
+                {i.actions && <div style={{ fontSize: '0.8rem', color: 'var(--slate-500)' }}><strong>Ações:</strong> {i.actions}</div>}
               </div>
             )) : <div className="table-wrap" style={{ padding: '2rem', textAlign: 'center', color: 'var(--slate-400)' }}>Nenhum incidente registado.</div>}
           </div>
@@ -500,7 +531,7 @@ export default function AdminDashboard() {
               <div className="table-scroll">
                 <table>
                   <thead><tr><th>Nome</th><th>Tipo</th><th>Tamanho</th><th>Data</th><th>Categoria</th><th>Ação</th></tr></thead>
-                  <tbody>{docs.map(d => <tr key={d.id}><td style={{ fontWeight: 500 }}>{d.name}</td><td><span className="badge badge-blue">{d.type}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.size}</td><td style={{ color: 'var(--slate-500)' }}>{d.uploadDate}</td><td><span className="badge badge-gray">{d.category}</span></td><td><button className="btn btn-sm btn-outline-dark" onClick={() => downloadDoc(d)}>⬇</button></td></tr>)}</tbody>
+                  <tbody>{docs.map(d => <tr key={d.id}><td style={{ fontWeight: 500 }}>{d.name}</td><td><span className="badge badge-blue">{d.type}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.size}</td><td style={{ color: 'var(--slate-500)' }}>{d.uploadDate}</td><td><span className="badge badge-gray">{d.category}</span></td><td><div style={{ display: 'flex', gap: '0.4rem' }}><button className="btn btn-sm btn-outline-dark" onClick={() => downloadDoc(d)}>⬇</button><button className="btn btn-sm btn-danger" onClick={() => deleteDoc(d)}>🗑</button></div></td></tr>)}</tbody>
                 </table>
               </div>
             ) : <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--slate-400)' }}>Nenhum documento.</div>}
@@ -513,11 +544,11 @@ export default function AdminDashboard() {
               <div key={p.id} className="table-wrap" style={{ padding: '1.25rem 1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
                   <div>
-                    <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{p.titulo}</div>
-                    <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--slate-500)' }}><span className="badge badge-blue">{p.tipo}</span><span>{p.consultor} • {p.data}</span></div>
+                    <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{p.title}</div>
+                    <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--slate-500)' }}><span className="badge badge-blue">{p.scope}</span><span>{p.date}</span></div>
                   </div>
-                  <button className="btn btn-sm btn-outline-dark" onClick={() => showToast('Relatório não disponível.')}>⬇ Relatório PDF</button>
                 </div>
+                {p.summary && <div style={{ fontSize: '0.875rem', color: 'var(--slate-600)', marginBottom: '1rem' }}>{p.summary}</div>}
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   {[['Crítico', p.critico, '#ef4444', '#fef2f2'], ['Alto', p.alto, '#f97316', '#fff7ed'], ['Médio', p.medio, '#eab308', '#fefce8'], ['Baixo', p.baixo, 'var(--slate-500)', 'var(--slate-50)']].map(([label, count, color, bg]) => (
                     <div key={label} style={{ padding: '0.75rem 1.25rem', borderRadius: '8px', background: bg, textAlign: 'center', minWidth: '90px' }}>
@@ -550,7 +581,7 @@ export default function AdminDashboard() {
     <div className="dash-layout">
       <div className={`sidebar-overlay${sidebarOpen ? ' show' : ''}`} onClick={() => setSidebarOpen(false)} />
       <aside className={`sidebar${sidebarOpen ? ' open' : ''}`}>
-        <div className="sidebar-logo" onClick={() => navigate('/')}><ShieldIcon /><div><div className="sidebar-logo-text">Ciryx</div><div className="sidebar-logo-sub">{isAdmin ? 'Administração' : 'Gestão'}</div></div></div>
+        <div className="sidebar-logo" onClick={() => navigate('/')}><ShieldIcon /><div><div className="sidebar-logo-text">Cyrix</div><div className="sidebar-logo-sub">{isAdmin ? 'Administração' : 'Gestão'}</div></div></div>
         <div className="sidebar-user"><div className="sidebar-user-name">{user?.name}</div><div className="sidebar-user-role">{isAdmin ? 'Administrador' : 'Gestor'}</div></div>
         <nav className="sidebar-nav">
           {navSections.map((section, i) => (
@@ -789,11 +820,11 @@ export default function AdminDashboard() {
               <div className="table-header"><h3>Documentos ({documents.length})</h3></div>
               <div className="table-scroll">
                 <table>
-                  <thead><tr><th>Nome</th><th>Tipo</th><th>Tamanho</th><th>Data</th><th>Categoria</th><th>Cliente</th></tr></thead>
+                  <thead><tr><th>Nome</th><th>Tipo</th><th>Tamanho</th><th>Data</th><th>Categoria</th><th>Cliente</th><th>Ação</th></tr></thead>
                   <tbody>{documents.map(d => (
-                    <tr key={d.id}><td style={{ fontWeight: 500 }}>{d.name}</td><td><span className="badge badge-blue">{d.type}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.size}</td><td style={{ color: 'var(--slate-500)' }}>{d.uploadDate}</td><td><span className="badge badge-gray">{d.category}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.clientName || 'Público'}</td></tr>
+                    <tr key={d.id}><td style={{ fontWeight: 500 }}>{d.name}</td><td><span className="badge badge-blue">{d.type}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.size}</td><td style={{ color: 'var(--slate-500)' }}>{d.uploadDate}</td><td><span className="badge badge-gray">{d.category}</span></td><td style={{ color: 'var(--slate-500)' }}>{d.clientName || 'Público'}</td><td><div style={{ display: 'flex', gap: '0.4rem' }}><button className="btn btn-sm btn-outline-dark" onClick={() => downloadDoc(d)}>⬇</button><button className="btn btn-sm btn-danger" onClick={() => deleteDoc(d)}>🗑</button></div></td></tr>
                   ))}
-                  {documents.length === 0 && <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--slate-400)', padding: '2rem' }}>Sem documentos.</td></tr>}</tbody>
+                  {documents.length === 0 && <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--slate-400)', padding: '2rem' }}>Sem documentos.</td></tr>}</tbody>
                 </table>
               </div>
             </div>

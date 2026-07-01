@@ -1,4 +1,4 @@
-# Deploy do Ciryx (Neon + Render + Vercel)
+# Deploy do Cyrix (Neon + Render + Vercel)
 
 Guia rápido para publicar o projeto online, no mesmo modelo dos materiais da cadeira
 (base de dados na **Neon**, backend no **Render**, frontend no **Vercel**).
@@ -19,13 +19,13 @@ Guia rápido para publicar o projeto online, no mesmo modelo dos materiais da ca
    - `JWT_EXPIRES_IN` = `2h`
    - `PORT` = `3000` (o Render define a sua, o código usa `process.env.PORT`)
 3. (Alternativa ao `DATABASE_URL`) podes usar `DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD` + `DB_SSL=true`.
-4. Anota o URL público do backend (ex.: `https://ciryx-api.onrender.com`).
+4. Anota o URL público do backend (ex.: `https://cyrix-api.onrender.com`).
 
 ## 3. Frontend — Vercel
 1. Importa o repositório em https://vercel.com e escolhe a pasta `frontend/`.
    - Framework: Vite. Build Command: `npm run build`. Output: `dist`.
 2. Define a variável de ambiente:
-   - `VITE_API_URL` = o URL do backend no Render (ex.: `https://ciryx-api.onrender.com`)
+   - `VITE_API_URL` = o URL do backend no Render (ex.: `https://cyrix-api.onrender.com`)
 3. Faz deploy. O frontend passa a falar com o backend publicado.
 
 ## Notas

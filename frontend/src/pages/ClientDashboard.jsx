@@ -8,6 +8,8 @@ import {
   apiGetTicketComments, apiCreateTicketComment,
   apiGetUsers, apiGetConversations, apiEnsureConversation, apiGetConversationMessages, apiSendConversationMessage,
   apiUpdateMe,
+  apiGetTechAssets, apiCreateTechAsset, apiBulkTechAssets, apiDeleteTechAsset,
+  apiGetIncidents, apiCreateIncident,
 } from '../apiService.js';
 
 const ShieldIcon = () => (
@@ -82,6 +84,46 @@ export default function ClientDashboard() {
   const [tickets, setTickets] = useState([]);
   const [docs, setDocs] = useState([]);
   const [requests, setRequests] = useState([]);
+
+  // Ativos tecnologicos e incidentes (novos requisitos)
+  const [assets, setAssets] = useState([]);
+  const [incidents, setIncidents] = useState([]);
+  const [assetForm, setAssetForm] = useState({ name: '', asset_type: '', quantity: 1, location: '', criticality: 'media' });
+  const [incForm, setIncForm] = useState({ title: '', incident_date: '', category: '', severity: 'media', description: '', impact: '', actions: '' });
+  const reloadAssets = () => apiGetTechAssets().then(setAssets).catch(() => {});
+  const reloadIncidents = () => apiGetIncidents().then(setIncidents).catch(() => {});
+  useEffect(() => { reloadAssets(); reloadIncidents(); }, []);
+  const addAsset = async (e) => {
+    e.preventDefault();
+    if (!assetForm.name.trim()) return;
+    try { await apiCreateTechAsset(assetForm); setAssetForm({ name: '', asset_type: '', quantity: 1, location: '', criticality: 'media' }); reloadAssets(); showToast('Ativo registado.'); }
+    catch (err) { showToast('Erro: ' + (err.response?.data?.error || err.message), 'error'); }
+  };
+  const delAsset = async (id) => { if (!window.confirm('Remover este ativo?')) return; try { await apiDeleteTechAsset(id); reloadAssets(); } catch { /* */ } };
+  const importAssets = async (file) => {
+    if (!file) return;
+    try {
+      const XLSX = await import('xlsx');
+      const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+      const items = rows.map((r) => ({
+        name: r.name || r.Nome || r.nome || r.Ativo || r.ativo,
+        asset_type: r.asset_type || r.Tipo || r.tipo,
+        quantity: r.quantity || r.Quantidade || r.quantidade || 1,
+        location: r.location || r['Localização'] || r.localizacao,
+        criticality: r.criticality || r.Criticidade || r.criticidade || 'media',
+      })).filter((i) => i.name);
+      if (items.length === 0) { showToast('Nenhuma linha válida no ficheiro.', 'error'); return; }
+      const res = await apiBulkTechAssets(items);
+      reloadAssets(); showToast(`${res.inserted} ativos importados do Excel.`);
+    } catch (err) { showToast('Erro ao importar Excel: ' + (err.message || 'ficheiro invalido'), 'error'); }
+  };
+  const addIncident = async (e) => {
+    e.preventDefault();
+    if (!incForm.title.trim()) return;
+    try { await apiCreateIncident(incForm); setIncForm({ title: '', incident_date: '', category: '', severity: 'media', description: '', impact: '', actions: '' }); reloadIncidents(); showToast('Incidente reportado.'); }
+    catch (err) { showToast('Erro: ' + (err.response?.data?.error || err.message), 'error'); }
+  };
 
   // Chat direto (estilo WhatsApp) com qualquer utilizador
   const [allUsers, setAllUsers] = useState([]);
@@ -186,7 +228,7 @@ export default function ClientDashboard() {
       const conv = await apiEnsureConversation(user.id, peer.id);
       setChatConv(conv);
       setChatMessages(await apiGetConversationMessages(conv.id));
-      localStorage.setItem('ciryx_seen_' + conv.id, new Date().toISOString());
+      localStorage.setItem('cyrix_seen_' + conv.id, new Date().toISOString());
       setUnreadPeers(prev => { const n = new Set(prev); n.delete(String(peer.id)); return n; });
     } catch {
       showToast('Erro ao abrir conversa.', 'error');
@@ -218,7 +260,7 @@ export default function ClientDashboard() {
       convs.forEach(c => {
         const other = (c.participant1 && c.participant1.id !== String(user.id)) ? c.participant1 : c.participant2;
         if (!other || !c.lastMessageAt || !c.lastSenderId || c.lastSenderId === String(user.id)) return;
-        const seen = localStorage.getItem('ciryx_seen_' + c.id);
+        const seen = localStorage.getItem('cyrix_seen_' + c.id);
         if (!seen || new Date(c.lastMessageAt) > new Date(seen)) s.add(other.id);
       });
       setUnreadPeers(s);
@@ -336,6 +378,8 @@ export default function ClientDashboard() {
     { id: 'pedidos', label: 'Pedidos de Serviço', icon: '📋' },
     { id: 'documentos', label: 'Documentos', icon: '📄' },
     { id: 'risco', label: 'Avaliação de Risco', icon: '🛡️' },
+    { id: 'ativos', label: 'Ativos Tecnológicos', icon: '🖥️' },
+    { id: 'incidentes', label: 'Report de Incidentes', icon: '⚠️' },
     { id: 'evidencias', label: 'Submeter Evidências', icon: '📤' },
   ];
 
@@ -348,7 +392,7 @@ export default function ClientDashboard() {
 
       <div className={`sidebar-overlay${sidebarOpen ? ' show' : ''}`} onClick={() => setSidebarOpen(false)} />
       <aside className={`sidebar${sidebarOpen ? ' open' : ''}`}>
-        <div className="sidebar-logo" onClick={() => navigate('/')}><ShieldIcon /><div><div className="sidebar-logo-text">Ciryx</div><div className="sidebar-logo-sub">Portal do Cliente</div></div></div>
+        <div className="sidebar-logo" onClick={() => navigate('/')}><ShieldIcon /><div><div className="sidebar-logo-text">Cyrix</div><div className="sidebar-logo-sub">Portal do Cliente</div></div></div>
         <div className="sidebar-user"><div className="sidebar-user-name">{user?.name}</div><div className="sidebar-user-role">{user?.company || 'Cliente'}</div></div>
         <nav className="sidebar-nav">
           <div className="sidebar-section">PORTAL</div>
@@ -386,7 +430,7 @@ export default function ClientDashboard() {
                   <div className="table-header"><h3>Tickets Recentes</h3><button className="btn btn-outline-dark btn-sm" onClick={() => go('tickets')}>Ver todos</button></div>
                   {myTickets.slice(0, 4).map(t => (
                     <div key={t.id} style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid var(--slate-100)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div><div style={{ fontSize: '0.875rem', fontWeight: 500 }}>{t.title}</div><div style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>{t.category} • {t.assignedTo || 'Equipa Ciryx'}</div></div>
+                      <div><div style={{ fontSize: '0.875rem', fontWeight: 500 }}>{t.title}</div><div style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>{t.category} • {t.assignedTo || 'Equipa Cyrix'}</div></div>
                       {statusBadge(t.status)}
                     </div>
                   ))}
@@ -469,7 +513,7 @@ export default function ClientDashboard() {
                     <div className="table-header">
                       <div>
                         <h3 style={{ marginBottom: '0.25rem' }}>{t.title}</h3>
-                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>{statusBadge(t.status)} {priorityBadge(t.priority)}<span style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>{t.category} • {t.assignedTo || 'Equipa Ciryx'}</span></div>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>{statusBadge(t.status)} {priorityBadge(t.priority)}<span style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>{t.category} • {t.assignedTo || 'Equipa Cyrix'}</span></div>
                       </div>
                       <button className="btn btn-outline-dark btn-sm" onClick={() => openTicket(t)}>💬 Conversa</button>
                     </div>
@@ -559,10 +603,76 @@ export default function ClientDashboard() {
               <div className="table-wrap" style={{ padding: '4rem', textAlign: 'center' }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛡️</div>
                 <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.5rem' }}>Avaliação de Risco Pendente</div>
-                <div style={{ color: 'var(--slate-400)', marginBottom: '1.5rem' }}>A sua avaliação de risco ainda não foi concluída. Entre em contacto com a equipa Ciryx para agendar.</div>
+                <div style={{ color: 'var(--slate-400)', marginBottom: '1.5rem' }}>A sua avaliação de risco ainda não foi concluída. Entre em contacto com a equipa Cyrix para agendar.</div>
                 <button className="btn btn-primary" onClick={() => go('pedidos')}>Solicitar Avaliação</button>
               </div>
             )
+          )}
+
+          {page === 'ativos' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="table-wrap" style={{ padding: '1.5rem' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Registar Ativo Tecnológico</h3>
+                <form onSubmit={addAsset}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '1rem' }}>
+                    <div className="form-group"><label className="label">Nome *</label><input className="input" value={assetForm.name} onChange={e => setAssetForm({ ...assetForm, name: e.target.value })} required /></div>
+                    <div className="form-group"><label className="label">Tipo</label><input className="input" value={assetForm.asset_type} onChange={e => setAssetForm({ ...assetForm, asset_type: e.target.value })} placeholder="Servidor, Portátil..." /></div>
+                    <div className="form-group"><label className="label">Quantidade</label><input className="input" type="number" min="1" value={assetForm.quantity} onChange={e => setAssetForm({ ...assetForm, quantity: e.target.value })} /></div>
+                    <div className="form-group"><label className="label">Localização</label><input className="input" value={assetForm.location} onChange={e => setAssetForm({ ...assetForm, location: e.target.value })} /></div>
+                    <div className="form-group"><label className="label">Criticidade</label><select className="input" value={assetForm.criticality} onChange={e => setAssetForm({ ...assetForm, criticality: e.target.value })}><option value="baixa">Baixa</option><option value="media">Média</option><option value="alta">Alta</option><option value="critica">Crítica</option></select></div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                    <button type="submit" className="btn btn-primary">+ Registar ativo</button>
+                    <label className="btn btn-outline-dark" style={{ cursor: 'pointer' }}>📥 Importar de Excel
+                      <input type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }} onChange={e => { importAssets(e.target.files[0]); e.target.value = ''; }} />
+                    </label>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--slate-400)', marginTop: '0.5rem' }}>Excel com colunas: Nome, Tipo, Quantidade, Localização, Criticidade.</div>
+                </form>
+              </div>
+              <div className="table-wrap">
+                <div className="table-header"><h3>Os meus ativos ({assets.length})</h3></div>
+                {assets.length > 0 ? (
+                  <div className="table-scroll"><table>
+                    <thead><tr><th>Nome</th><th>Tipo</th><th>Qtd.</th><th>Localização</th><th>Criticidade</th><th>Ação</th></tr></thead>
+                    <tbody>{assets.map(a => <tr key={a.id}><td style={{ fontWeight: 500 }}>{a.name}</td><td><span className="badge badge-blue">{a.assetType}</span></td><td>{a.quantity}</td><td style={{ color: 'var(--slate-500)' }}>{a.location}</td><td><span className="badge badge-gray">{a.criticality}</span></td><td><button className="btn btn-sm btn-danger" onClick={() => delAsset(a.id)}>🗑</button></td></tr>)}</tbody>
+                  </table></div>
+                ) : <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--slate-400)' }}>Ainda não registou ativos.</div>}
+              </div>
+            </div>
+          )}
+
+          {page === 'incidentes' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="table-wrap" style={{ padding: '1.5rem' }}>
+                <h3 style={{ marginBottom: '0.25rem' }}>Reportar Incidente de Segurança</h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--slate-500)', marginBottom: '1rem' }}>Campos com base no formulário de registo do CNCS.</p>
+                <form onSubmit={addIncident}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '1rem' }}>
+                    <div className="form-group"><label className="label">Título *</label><input className="input" value={incForm.title} onChange={e => setIncForm({ ...incForm, title: e.target.value })} required /></div>
+                    <div className="form-group"><label className="label">Data</label><input className="input" type="date" value={incForm.incident_date} onChange={e => setIncForm({ ...incForm, incident_date: e.target.value })} /></div>
+                    <div className="form-group"><label className="label">Categoria</label><input className="input" value={incForm.category} onChange={e => setIncForm({ ...incForm, category: e.target.value })} placeholder="Ransomware, Phishing..." /></div>
+                    <div className="form-group"><label className="label">Severidade</label><select className="input" value={incForm.severity} onChange={e => setIncForm({ ...incForm, severity: e.target.value })}><option value="baixa">Baixa</option><option value="media">Média</option><option value="alta">Alta</option><option value="critica">Crítica</option></select></div>
+                  </div>
+                  <div className="form-group" style={{ marginTop: '1rem' }}><label className="label">Descrição</label><textarea className="input" rows="3" value={incForm.description} onChange={e => setIncForm({ ...incForm, description: e.target.value })} /></div>
+                  <div className="form-group"><label className="label">Impacto</label><textarea className="input" rows="2" value={incForm.impact} onChange={e => setIncForm({ ...incForm, impact: e.target.value })} /></div>
+                  <div className="form-group"><label className="label">Ações tomadas</label><textarea className="input" rows="2" value={incForm.actions} onChange={e => setIncForm({ ...incForm, actions: e.target.value })} /></div>
+                  <button type="submit" className="btn btn-primary" style={{ marginTop: '0.5rem' }}>Reportar incidente</button>
+                </form>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h3>Incidentes reportados ({incidents.length})</h3>
+                {incidents.length > 0 ? incidents.map(i => (
+                  <div key={i.id} className="table-wrap" style={{ padding: '1.25rem 1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      <div><div style={{ fontWeight: 600 }}>{i.title}</div><div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}><span className="badge badge-blue">{i.category}</span><span className="badge badge-gray">{i.severity}</span><span className="badge badge-gray">{i.status}</span></div></div>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--slate-400)' }}>{i.date}</span>
+                    </div>
+                    {i.description && <div style={{ fontSize: '0.875rem', color: 'var(--slate-600)' }}>{i.description}</div>}
+                  </div>
+                )) : <div className="table-wrap" style={{ padding: '2rem', textAlign: 'center', color: 'var(--slate-400)' }}>Sem incidentes reportados.</div>}
+              </div>
+            </div>
           )}
 
           {page === 'evidencias' && (

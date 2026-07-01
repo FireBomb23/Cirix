@@ -1,4 +1,4 @@
-# Ciryx
+# Cyrix
 
 Portal de cibersegurança / conformidade NIS2.
 
@@ -75,8 +75,8 @@ npm start            # http://localhost:3000
 
 | Email                | Password     | Perfil  | Palavra 2FA (uma) |
 |----------------------|--------------|---------|-------------------|
-| admin@ciryx.pt       | `admin123`   | admin   | segurança         |
-| manager@ciryx.pt     | `manager123` | manager | proteção          |
+| admin@cyrix.pt       | `admin123`   | admin   | segurança         |
+| manager@cyrix.pt     | `manager123` | manager | proteção          |
 | cliente@empresa.pt   | `client123`  | client  | privacidade       |
 
 ---

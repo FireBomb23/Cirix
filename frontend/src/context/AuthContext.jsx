@@ -2,8 +2,8 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import api from '../api.js';
 
 const AuthContext = createContext(null);
-const TOKEN_KEY = 'ciryx_token';
-const USER_KEY = 'ciryx_user';
+const TOKEN_KEY = 'cyrix_token';
+const USER_KEY = 'cyrix_user';
 
 export function AuthProvider({ children }) {
   // Recupera a sessao guardada (mantem login apos refresh)

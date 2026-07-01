@@ -1,7 +1,7 @@
 {
-  "name": "ciryx-backend",
+  "name": "cyrix-backend",
   "version": "1.0.0",
-  "description": "Backend Node + Express (MVC) para o portal Ciryx - liga-se ao PostgreSQL projeto_BD via Sequelize",
+  "description": "Backend Node + Express (MVC) para o portal Cyrix - liga-se ao PostgreSQL projeto_BD via Sequelize",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
