@@ -3,22 +3,34 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { apiGetDocuments, apiGetIncidents, apiGetTechAssets } from '../apiService.js';
 
 const REQS = [
-  'Políticas de segurança da informação e análise de risco aprovadas pela gestão',
-  'Procedimento de gestão e notificação de incidentes (alerta 24h / notificação 72h)',
-  'Plano de continuidade de negócio e recuperação de desastres (backups testados)',
-  'Segurança da cadeia de fornecedores e prestadores de serviços',
-  'Segurança na aquisição, desenvolvimento e manutenção de sistemas',
-  'Autenticação multifator (MFA) e comunicações seguras',
-  'Uso de criptografia e cifragem de dados sensíveis',
-  'Formação e sensibilização em cibersegurança dos colaboradores',
-  'Controlo de acessos e gestão de identidades (privilégio mínimo)',
-  'Testes e auditorias de segurança regulares (ex.: pentests)',
+  { t: 'Políticas de segurança da informação e análise de risco aprovadas pela gestão', p: 'Governança & Risco' },
+  { t: 'Controlo de acessos e gestão de identidades (privilégio mínimo)', p: 'Governança & Risco' },
+  { t: 'Autenticação multifator (MFA) e comunicações seguras', p: 'Governança & Risco' },
+  { t: 'Uso de criptografia e cifragem de dados sensíveis', p: 'Governança & Risco' },
+  { t: 'Formação e sensibilização em cibersegurança dos colaboradores', p: 'Governança & Risco' },
+  { t: 'Procedimento de gestão e notificação de incidentes (alerta 24h / notificação 72h)', p: 'Deteção & Resposta' },
+  { t: 'Testes e auditorias de segurança regulares (ex.: pentests)', p: 'Deteção & Resposta' },
+  { t: 'Plano de continuidade de negócio e recuperação de desastres (backups testados)', p: 'Resiliência' },
+  { t: 'Segurança da cadeia de fornecedores e prestadores de serviços', p: 'Resiliência' },
+  { t: 'Segurança na aquisição, desenvolvimento e manutenção de sistemas', p: 'Resiliência' },
 ];
+const PILLARS = ['Governança & Risco', 'Deteção & Resposta', 'Resiliência'];
 
 export default function NIS2() {
   const { user } = useAuth();
+  const storeKey = `nis2_assessment_${user?.email || 'anon'}`;
   const [checked, setChecked] = useState({});
   const [comp, setComp] = useState(null);
+
+  // Carregar avaliação guardada (persiste entre visitas)
+  useEffect(() => {
+    try { const s = localStorage.getItem(storeKey); if (s) setChecked(JSON.parse(s)); else setChecked({}); }
+    catch { setChecked({}); }
+  }, [storeKey]);
+  // Guardar sempre que muda
+  useEffect(() => {
+    try { localStorage.setItem(storeKey, JSON.stringify(checked)); } catch { /* ignora */ }
+  }, [checked, storeKey]);
 
   useEffect(() => {
     if (user && user.role === 'client') {
@@ -42,6 +54,7 @@ export default function NIS2() {
   const estado = pct >= 80 ? 'Conforme' : pct >= 50 ? 'Em avaliação' : 'Com pendências';
   const cor = pct >= 80 ? '#16A34A' : pct >= 50 ? '#EAB308' : '#DC2626';
   const toggle = (i) => setChecked((c) => ({ ...c, [i]: !c[i] }));
+  const repor = () => setChecked({});
 
   return (
     <>
@@ -73,18 +86,27 @@ export default function NIS2() {
             <div className="card"><div className="card-content"><h3>Prazos &amp; coimas</h3><p style={{ color: 'var(--slate-600)' }}>Transposição em 2024. Incidentes: alerta em 24h e notificação em 72h. Coimas até 10M€ ou 2% do volume de negócios global.</p></div></div>
           </div>
 
-          <h2 style={{ fontSize: '1.75rem', marginBottom: '1.5rem' }}>Autoavaliação de conformidade</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+            <h2 style={{ fontSize: '1.75rem' }}>Autoavaliação de conformidade</h2>
+            <button className="btn btn-outline-dark btn-sm" onClick={repor}>Repor avaliação</button>
+          </div>
+
           <div className="two-col" style={{ alignItems: 'start', gap: '2.5rem' }}>
             <div className="card"><div className="card-content">
-              <p style={{ color: 'var(--slate-500)', fontSize: '.9rem', marginBottom: '.75rem' }}>Assinale as medidas que a sua organização já implementa:</p>
-              {REQS.map((r, i) => (
-                <label key={i} style={{ display: 'flex', gap: '.6rem', alignItems: 'flex-start', padding: '.6rem 0', borderBottom: '1px solid var(--slate-200)', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={!!checked[i]} onChange={() => toggle(i)} style={{ marginTop: '.2rem', width: 18, height: 18, accentColor: 'var(--yellow)', flexShrink: 0 }} />
-                  <span style={{ color: 'var(--slate-700)', fontSize: '.93rem' }}>{r}</span>
-                </label>
+              <p style={{ color: 'var(--slate-500)', fontSize: '.9rem', marginBottom: '1rem' }}>Assinale as medidas que a sua organização já implementa (guardado automaticamente):</p>
+              {PILLARS.map((pil) => (
+                <div key={pil} style={{ marginBottom: '1.25rem' }}>
+                  <div style={{ fontSize: '.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--yellow-dark)', marginBottom: '.4rem' }}>{pil}</div>
+                  {REQS.map((r, i) => r.p === pil && (
+                    <label key={i} style={{ display: 'flex', gap: '.6rem', alignItems: 'flex-start', padding: '.5rem 0', borderBottom: '1px solid var(--slate-200)', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={!!checked[i]} onChange={() => toggle(i)} style={{ marginTop: '.2rem', width: 18, height: 18, accentColor: 'var(--yellow)', flexShrink: 0 }} />
+                      <span style={{ color: 'var(--slate-700)', fontSize: '.92rem' }}>{r.t}</span>
+                    </label>
+                  ))}
+                </div>
               ))}
             </div></div>
-            <div className="card"><div className="card-content" style={{ textAlign: 'center' }}>
+            <div className="card" style={{ position: 'sticky', top: '5.5rem' }}><div className="card-content" style={{ textAlign: 'center' }}>
               <h3 style={{ marginBottom: '1.5rem' }}>Resultado</h3>
               <div style={{ fontSize: '3.5rem', fontWeight: 800, fontFamily: "'Syne', sans-serif", color: cor, lineHeight: 1 }}>{pct}%</div>
               <div style={{ display: 'inline-block', padding: '.35rem 1rem', borderRadius: 9999, background: cor, color: '#0f172a', fontWeight: 700, marginTop: '.75rem' }}>{estado}</div>

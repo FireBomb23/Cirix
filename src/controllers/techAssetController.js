@@ -3,13 +3,12 @@ const { recordAudit } = require('../utils/audit');
 
 const INCLUDE = [{ model: User, as: 'cliente', attributes: ['id', 'name', 'email'] }];
 const isClient = (req) => req.user && req.user.role === 'client';
+const { scopeWhereClient, canAccessClient } = require('../utils/scope');
 
 // GET /tech-assets  (cliente: os seus; staff: todos ou ?client_id=)
 exports.asset_list = async (req, res) => {
   try {
-    const where = isClient(req)
-      ? { client_id: req.user.id }
-      : (req.query.client_id ? { client_id: req.query.client_id } : {});
+    const where = await scopeWhereClient(req);
     const rows = await TechAsset.findAll({ where, include: INCLUDE, order: [['id', 'DESC']] });
     res.json(rows);
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -55,7 +54,7 @@ exports.asset_delete = async (req, res) => {
   try {
     const a = await TechAsset.findByPk(req.params.id);
     if (!a) return res.status(404).json({ error: 'Ativo nao encontrado' });
-    if (isClient(req) && a.client_id !== req.user.id) return res.status(403).json({ error: 'Sem acesso.' });
+    if (!(await canAccessClient(req, a.client_id))) return res.status(403).json({ error: 'Sem acesso.' });
     await a.destroy();
     res.json({ status: 'success' });
   } catch (e) { res.status(500).json({ error: e.message }); }

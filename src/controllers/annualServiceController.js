@@ -1,4 +1,5 @@
 const { AnnualService, User } = require('../models');
+const { scopeWhere } = require('../utils/scope');
 
 const INCLUDE_USERS = [
   { model: User, as: 'cliente', attributes: ['id', 'name'] },
@@ -8,7 +9,8 @@ const INCLUDE_USERS = [
 // GET /annual-services
 exports.annualservice_list = async (req, res) => {
   try {
-    const servicos = await AnnualService.findAll({ include: INCLUDE_USERS, order: [['id', 'ASC']] });
+    const where = await scopeWhere(req);
+    const servicos = await AnnualService.findAll({ where, include: INCLUDE_USERS, order: [['id', 'ASC']] });
     res.json(servicos);
   } catch (e) {
     res.status(500).json({ error: e.message });

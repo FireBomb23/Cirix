@@ -13,11 +13,12 @@ const INCLUDE_COMMENTS = {
 
 // Um cliente so pode ver/usar os seus proprios tickets
 const isClient = (req) => req.user && req.user.role === 'client';
+const { scopeWhere, canAccessClient } = require('../utils/scope');
 
 // GET /tickets
 exports.ticket_list = async (req, res) => {
   try {
-    const where = isClient(req) ? { client_id: req.user.id } : {};
+    const where = await scopeWhere(req);
     const tickets = await Ticket.findAll({ where, include: INCLUDE_USERS, order: [['id', 'ASC']] });
     res.json(tickets);
   } catch (e) {
@@ -30,7 +31,7 @@ exports.ticket_detail = async (req, res) => {
   try {
     const ticket = await Ticket.findByPk(req.params.id, { include: [...INCLUDE_USERS, INCLUDE_COMMENTS] });
     if (!ticket) return res.status(404).json({ error: 'Ticket nao encontrado' });
-    if (isClient(req) && ticket.client_id !== req.user.id) {
+    if (!(await canAccessClient(req, ticket.client_id))) {
       return res.status(403).json({ error: 'Sem acesso a este ticket.' });
     }
     res.json(ticket);
@@ -94,7 +95,7 @@ exports.ticket_comments_list = async (req, res) => {
   try {
     const ticket = await Ticket.findByPk(req.params.id);
     if (!ticket) return res.status(404).json({ error: 'Ticket nao encontrado' });
-    if (isClient(req) && ticket.client_id !== req.user.id) {
+    if (!(await canAccessClient(req, ticket.client_id))) {
       return res.status(403).json({ error: 'Sem acesso a este ticket.' });
     }
     const comentarios = await TicketComment.findAll({
@@ -113,7 +114,7 @@ exports.ticket_comment_create = async (req, res) => {
   try {
     const ticket = await Ticket.findByPk(req.params.id);
     if (!ticket) return res.status(404).json({ error: 'Ticket nao encontrado' });
-    if (isClient(req) && ticket.client_id !== req.user.id) {
+    if (!(await canAccessClient(req, ticket.client_id))) {
       return res.status(403).json({ error: 'Sem acesso a este ticket.' });
     }
     const { content } = req.body;

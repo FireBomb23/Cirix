@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import {
-  apiGetUsers, apiCreateUser, apiToggleUserActive,
+  apiGetUsers, apiCreateUser, apiToggleUserActive, apiUpdateUser,
   apiGetTickets, apiUpdateTicketStatus, apiGetTicketComments, apiCreateTicketComment,
   apiGetArticles, apiCreateArticle, apiUpdateArticle, apiDeleteArticle,
   apiGetDocuments, apiCreateDocument, apiGetDocument, apiDeleteDocument, apiGetAnnualServices, apiGetAuditLog,
@@ -22,6 +22,7 @@ const ShieldIcon = () => (
 
 const BLANK_USER_FORM = {
   role: 'client', name: '', email: '', phone: '', password: '',
+  company: '', manager: '',
   word1: '', word2: '', word3: '',
   securityName: '', securityEmail: '', securityPhone: '',
   contactName: '', contactEmail: '', contactPhone: '',
@@ -112,6 +113,7 @@ export default function AdminDashboard() {
         const norm = apiUsers.map(u => ({
           id: String(u.id), name: u.name, email: u.email,
           role: u.role, company: u.company || '', phone: u.phone || '', active: u.active,
+          manager_id: u.manager_id != null ? String(u.manager_id) : '',
           so_name: u.so_name, so_email: u.so_email, so_phone: u.so_phone,
           pc_name: u.pc_name, pc_email: u.pc_email, pc_phone: u.pc_phone,
         }));
@@ -373,6 +375,20 @@ export default function AdminDashboard() {
     catch { setClients(prev => prev.map(x => x.id === id ? { ...x, active: !newActive } : x)); }
   };
 
+  // Admin atribui / troca / remove o gestor de um cliente
+  const assignManager = async (clientId, managerId) => {
+    const prevClients = clients, prevUsers = users;
+    setClients(prev => prev.map(c => c.id === clientId ? { ...c, manager_id: managerId } : c));
+    setUsers(prev => prev.map(u => u.id === clientId ? { ...u, manager_id: managerId } : u));
+    try {
+      await apiUpdateUser(clientId, { manager_id: managerId || null });
+      showToast(managerId ? 'Gestor atribuído.' : 'Gestor removido.');
+    } catch (e) {
+      setClients(prevClients); setUsers(prevUsers);
+      showToast('Erro ao atribuir gestor: ' + (e.response?.data?.error || e.message), 'error');
+    }
+  };
+
   const openUserModal = () => { setUserForm(BLANK_USER_FORM); setShowUserModal(true); };
 
   const saveUser = async (e) => {
@@ -380,13 +396,14 @@ export default function AdminDashboard() {
     try {
       const created = await apiCreateUser({
         name: userForm.name, email: userForm.email, password: userForm.password, role: userForm.role,
-        company: userForm.role === 'client' ? '' : 'Cyrix',
+        company: userForm.role === 'client' ? (userForm.company || '') : 'Cyrix',
+        manager_id: userForm.role === 'client' && userForm.manager ? userForm.manager : null,
         phone: userForm.phone,
         so_name: userForm.securityName, so_email: userForm.securityEmail, so_phone: userForm.securityPhone,
         pc_name: userForm.contactName, pc_email: userForm.contactEmail, pc_phone: userForm.contactPhone,
         word1: userForm.word1, word2: userForm.word2, word3: userForm.word3,
       });
-      const nu = { id: String(created.id), name: created.name, email: created.email, phone: '', role: created.role, company: created.company || '', active: created.active };
+      const nu = { id: String(created.id), name: created.name, email: created.email, phone: created.phone || userForm.phone || '', role: created.role, company: created.company || '', active: created.active, manager_id: created.manager_id != null ? String(created.manager_id) : '' };
       setUsers(prev => [...prev, nu]);
       if (created.role === 'client') {
         setClients(prev => [...prev, {
@@ -435,7 +452,7 @@ export default function AdminDashboard() {
           <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: '200px' }}>
               <div style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.25rem' }}>{client.name}</div>
-              <div style={{ fontSize: '0.875rem', color: 'var(--slate-500)', marginBottom: '1rem' }}>{client.company} • {client.sector}</div>
+              <div style={{ fontSize: '0.875rem', color: 'var(--slate-500)', marginBottom: '1rem' }}>{client.company || 'Sem empresa'}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', fontSize: '0.875rem' }}>
                 <span>📧 {client.email}</span><span>📞 {client.phone}</span>
               </div>
@@ -748,14 +765,22 @@ export default function AdminDashboard() {
               <div className="table-header"><h3>Clientes ({clients.length})</h3></div>
               <div className="table-scroll">
                 <table>
-                  <thead><tr><th>Nome</th><th>Empresa</th><th>Email</th><th>Telefone</th><th>Setor</th><th>Estado</th><th>Ações</th></tr></thead>
+                  <thead><tr><th>Nome</th><th>Empresa</th><th>Email</th><th>Gestor</th><th>Estado</th><th>Ações</th></tr></thead>
                   <tbody>{clients.map(c => (
                     <tr key={c.id}>
                       <td style={{ fontWeight: 500 }}>{c.name}</td>
                       <td style={{ color: 'var(--slate-500)' }}>{c.company}</td>
                       <td style={{ color: 'var(--slate-500)' }}>{c.email}</td>
-                      <td style={{ color: 'var(--slate-500)' }}>{c.phone}</td>
-                      <td><span className="badge badge-blue">{c.sector || '—'}</span></td>
+                      <td>
+                        {isAdmin ? (
+                          <select className="input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', minWidth: '140px' }} value={c.manager_id || ''} onChange={e => assignManager(c.id, e.target.value)}>
+                            <option value="">— Sem gestor —</option>
+                            {users.filter(u => u.role === 'manager').map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                          </select>
+                        ) : (
+                          <span style={{ color: 'var(--slate-500)' }}>{(users.find(u => u.id === c.manager_id) || {}).name || '—'}</span>
+                        )}
+                      </td>
                       <td><span className={`badge ${c.active ? 'badge-green' : 'badge-gray'}`}>{c.active ? 'Ativo' : 'Inativo'}</span></td>
                       <td>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -966,6 +991,13 @@ export default function AdminDashboard() {
                 </div>
                 {userForm.role === 'client' && (
                   <>
+                    <div style={{ margin: '1rem 0 0.75rem', borderTop: '1px solid var(--slate-200)', paddingTop: '1rem' }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--slate-500)', marginBottom: '0.75rem' }}>Empresa &amp; Gestor</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="form-group"><label className="label">Empresa</label><input className="input" value={userForm.company} onChange={e => setUserForm({ ...userForm, company: e.target.value })} placeholder="Nome da empresa do cliente" /></div>
+                        <div className="form-group"><label className="label">Gestor responsável</label><select className="input" value={userForm.manager} onChange={e => setUserForm({ ...userForm, manager: e.target.value })}><option value="">— Sem gestor —</option>{users.filter(u => u.role === 'manager').map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></div>
+                      </div>
+                    </div>
                     <div style={{ margin: '1rem 0 0.75rem', borderTop: '1px solid var(--slate-200)', paddingTop: '1rem' }}>
                       <div style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--slate-500)', marginBottom: '0.75rem' }}>Responsável de Segurança</div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

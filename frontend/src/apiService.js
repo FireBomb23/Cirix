@@ -12,13 +12,14 @@ export async function apiGetUsers() {
   return data; // array de utilizadores (sem password_hash)
 }
 
-export async function apiCreateUser({ name, email, password, role, company, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone, word1, word2, word3 }) {
+export async function apiCreateUser({ name, email, password, role, company, manager_id, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone, word1, word2, word3 }) {
   const { data } = await api.post('/users/create', {
     name,
     email,
     password_hash: password,
     role,
     company: company || '',
+    manager_id: manager_id || null,
     active: true,
     phone: phone || null,
     so_name: so_name || null, so_email: so_email || null, so_phone: so_phone || null,
@@ -34,8 +35,9 @@ export async function apiUpdateUser(id, fields) {
 }
 
 // O proprio utilizador altera o seu nome/password (qualquer perfil)
-export async function apiUpdateMe({ name, password }) {
-  const { data } = await api.put('/users/me', { name, password });
+export async function apiUpdateMe(payload) {
+  // aceita name, password e os campos da ficha do cliente
+  const { data } = await api.put('/users/me', payload);
   return data;
 }
 

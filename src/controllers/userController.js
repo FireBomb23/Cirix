@@ -113,7 +113,11 @@ exports.user_verify_2fa = async (req, res) => {
 exports.user_list = async (req, res) => {
   try {
     const users = await User.findAll({ attributes: SEM_PASSWORD, order: [['id', 'ASC']] });
-    res.json(users);
+    // Um gestor só vê os SEUS clientes (mas continua a ver o staff, p.ex. para o chat)
+    const result = (req.user && req.user.role === 'manager')
+      ? users.filter(u => u.role !== 'client' || u.manager_id === req.user.id)
+      : users;
+    res.json(result);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -142,6 +146,10 @@ exports.user_update_me = async (req, res) => {
     const dados = {};
     if (name) dados.name = name;
     if (password) dados.password_hash = password; // o hook do model faz o hash
+    // Campos da ficha do cliente (empresa, telefone, responsavel de seguranca, contacto permanente)
+    ['company', 'phone', 'so_name', 'so_email', 'so_phone', 'pc_name', 'pc_email', 'pc_phone'].forEach(k => {
+      if (req.body[k] !== undefined) dados[k] = req.body[k];
+    });
     await user.update(dados);
     recordAudit(req, { action: 'Conta atualizada (perfil/password)', category: 'users', severity: 'info', user_id: user.id, user_email: user.email });
     res.json(publicUser(user));
@@ -153,14 +161,14 @@ exports.user_update_me = async (req, res) => {
 // POST /users/create  (o hash da password e feito pelo model - hook beforeCreate)
 exports.user_create = async (req, res) => {
   try {
-    const { name, email, password_hash, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone, twofa_word1, twofa_word2, twofa_word3 } = req.body;
+    const { name, email, password_hash, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone, manager_id, twofa_word1, twofa_word2, twofa_word3 } = req.body;
     if (!name || !email || !password_hash) {
       return res.status(400).json({ error: 'Nome, email e password sao obrigatorios.' });
     }
     if (passwordCurta(password_hash)) {
       return res.status(400).json({ error: 'A password deve ter pelo menos 6 caracteres.' });
     }
-    const novo = await User.create({ name, email, password_hash, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone, twofa_word1: twofa_word1 || null, twofa_word2: twofa_word2 || null, twofa_word3: twofa_word3 || null });
+    const novo = await User.create({ name, email, password_hash, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone, manager_id: manager_id || null, twofa_word1: twofa_word1 || null, twofa_word2: twofa_word2 || null, twofa_word3: twofa_word3 || null });
     recordAudit(req, { action: `Utilizador criado: ${email} (${role})`, category: 'users', severity: 'info' });
     res.status(201).json(publicUser(novo));
   } catch (e) {
@@ -182,6 +190,8 @@ exports.user_update = async (req, res) => {
     }
     const eraAtivo = user.active;
     const dados = { name, email, role, company, active, phone, so_name, so_email, so_phone, pc_name, pc_email, pc_phone };
+    // Atribuição de gestor a um cliente (admin): aceita id ou null para desatribuir
+    if (req.body.manager_id !== undefined) dados.manager_id = req.body.manager_id || null;
     if (password_hash) dados.password_hash = password_hash;
     await user.update(dados);
     if (active !== undefined && active !== eraAtivo) {
