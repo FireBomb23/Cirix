@@ -2,10 +2,13 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = 'django-insecure-cyrix-project-key-super-secret'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-cyrix-project-key-super-secret')
 
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = ['*']
+
+# Dominios de confianca para POST via HTTPS (ex.: https://o-teu-app.onrender.com)
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -47,16 +50,32 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'cyrix_project.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'projeto_BD',
-        'USER': 'postgres',
-        'PASSWORD': 'BDCatarina6',
-        'HOST': 'localhost',
-        'PORT': '5432',
+_DATABASE_URL = os.environ.get('DATABASE_URL')
+if _DATABASE_URL:
+    import urllib.parse as _urlparse
+    _p = _urlparse.urlparse(_DATABASE_URL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': _p.path.lstrip('/'),
+            'USER': _p.username,
+            'PASSWORD': _p.password,
+            'HOST': _p.hostname,
+            'PORT': _p.port or '5432',
+            'OPTIONS': {'sslmode': 'require'},
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'projeto_BD',
+            'USER': 'postgres',
+            'PASSWORD': 'BDCatarina6',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 LANGUAGE_CODE = 'pt-pt'
 TIME_ZONE = 'UTC'

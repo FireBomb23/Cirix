@@ -15,6 +15,7 @@
     --slate-800: #1E293B;
     --slate-700: #334155;
     --slate-600: #475569;
+    --slate-500: #64748B;
     --slate-400: #94A3B8;
     --slate-300: #CBD5E1;
     --slate-200: #E2E8F0;
@@ -140,6 +141,107 @@
   .chat-msg-out { background-color: rgba(234, 179, 8, 0.15); color: var(--yellow-light); align-self: flex-end; border: 1px solid rgba(234, 179, 8, 0.3); }
   .msg-meta { font-size: 0.75rem; color: var(--slate-400); margin-top: 0.25rem; text-align: right; }
   .ticket-reply { padding: 1rem; border-top: 1px solid var(--slate-700); display: flex; gap: 0.75rem; }
+
+  /* ===== DASHBOARD ADMIN (estilo claro, semelhante ao frontend) ===== */
+  .dashx { background: var(--slate-100); color: var(--slate-900); border-radius: 14px; padding: 1.5rem; }
+  .dashx .dhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
+  .dashx .dhead h2 { color: #0f172a; font-size: 1.5rem; }
+  .dashx .dhead p { color: var(--slate-600); font-size: 0.85rem; margin-top: 0.15rem; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
+  .kpi { background: #fff; border: 1px solid var(--slate-200); border-radius: 12px; padding: 1.1rem 1.25rem; box-shadow: 0 1px 3px rgba(15,23,42,0.08); }
+  .kpi .k-ic { float: right; width: 40px; height: 40px; border-radius: 10px; background: rgba(234,179,8,0.14); color: var(--yellow-dark); display: flex; align-items: center; justify-content: center; }
+  .kpi .k-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--slate-500); }
+  .kpi .k-val { font-size: 2rem; font-weight: 800; color: #0f172a; margin-top: 0.15rem; }
+  .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  .panel { background: #fff; border: 1px solid var(--slate-200); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(15,23,42,0.08); }
+  .panel.span2 { grid-column: 1 / -1; }
+  .panel-h { padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--slate-200); font-weight: 700; color: #0f172a; font-size: 0.95rem; }
+  .panel-h .num { display: inline-flex; width: 24px; height: 24px; border-radius: 7px; background: var(--yellow); color: #0f172a; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; margin-right: 0.5rem; }
+  .panel-b { padding: 0.4rem 1.25rem 0.9rem; }
+  .dtable { width: 100%; border-collapse: collapse; }
+  .dtable th { text-align: left; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--slate-500); padding: 0.5rem 0.25rem; border-bottom: 1px solid var(--slate-200); }
+  .dtable td { padding: 0.55rem 0.25rem; border-bottom: 1px solid var(--slate-100); font-size: 0.9rem; color: var(--slate-700); }
+  .dtable tr:last-child td { border-bottom: none; }
+  .dbadge { display: inline-flex; padding: 0.15rem 0.6rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; text-transform: capitalize; }
+  .b-green { background: #dcfce7; color: #15803d; } .b-yellow { background: #fef9c3; color: #a16207; }
+  .b-red { background: #fee2e2; color: #b91c1c; } .b-blue { background: #dbeafe; color: #1d4ed8; } .b-gray { background: #e2e8f0; color: #475569; }
+  .dbar { height: 8px; background: var(--slate-200); border-radius: 9999px; overflow: hidden; min-width: 70px; }
+  .dbar > i { display: block; height: 100%; background: var(--yellow); border-radius: 9999px; }
+  .rownum { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; background: var(--slate-800); color: #fff; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; }
+  @media (max-width: 900px) { .kpis { grid-template-columns: repeat(2,1fr); } .panels { grid-template-columns: 1fr; } }
+
+  /* ==========================================================
+     DASHBOARD — RÉPLICA DO DESIGN REACT (sidebar escura fixa)
+     ========================================================== */
+  body.dash-mode { display: block; background: var(--slate-50); }
+  body.dash-mode > .header, body.dash-mode > .footer { display: none !important; }
+  body.dash-mode > #app { max-width: none; width: 100%; padding: 0; margin: 0; }
+
+  .dash-layout { display: flex; min-height: 100vh; }
+  .dsidebar { width: 264px; background: #020617; color: #fff; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+  .dsidebar-logo { padding: 1.375rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+  .dsidebar-logo:hover { background: rgba(255,255,255,0.03); }
+  .dsidebar-logo .lg-brand { font-family: 'Syne', sans-serif; font-weight: 700; color: #fff; font-size: 1.05rem; }
+  .dsidebar-logo .lg-sub { font-size: 0.62rem; color: var(--slate-500); margin-top: 0.1rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .dsidebar-user { padding: 1.125rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+  .dsidebar-user .u-name { font-weight: 600; font-size: 0.875rem; color: #fff; }
+  .dsidebar-user .u-role { font-size: 0.68rem; color: var(--slate-500); margin-top: 0.15rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .dsidebar-nav { padding: 0.75rem 0; flex: 1; }
+  .dsidebar-sec { padding: 0.75rem 1.5rem 0.375rem; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-600); font-weight: 700; }
+  .dsidebar-link { display: flex; align-items: center; gap: 0.7rem; padding: 0.65rem 1.5rem; font-size: 0.875rem; font-weight: 500; color: var(--slate-400); transition: all 0.15s; background: none; border: none; cursor: pointer; font-family: inherit; width: 100%; text-align: left; border-left: 2px solid transparent; }
+  .dsidebar-link:hover { background: rgba(255,255,255,0.04); color: #fff; }
+  .dsidebar-link.active { background: rgba(234,179,8,0.1); color: var(--yellow); border-left-color: var(--yellow); }
+  .dsidebar-footer { padding: 1.25rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.06); }
+
+  .dash-main { margin-left: 264px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .dash-topbar { background: #fff; border-bottom: 1px solid #EEF2F7; padding: 0 1.75rem; height: 4rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+  .dash-topbar-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem; color: var(--slate-900); }
+  .dash-content { padding: 2rem 1.75rem; flex: 1; }
+
+  .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+  .stat-card { background: #fff; border: 1px solid var(--slate-200); border-radius: 14px; padding: 1.5rem; transition: box-shadow 0.2s, transform 0.2s; }
+  .stat-card:hover { box-shadow: 0 4px 6px -1px rgba(0,0,0,.1); transform: translateY(-1px); }
+  .stat-card .sc-label { font-size: 0.72rem; color: var(--slate-500); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.6rem; }
+  .stat-card .sc-value { font-family: 'Syne', sans-serif; font-size: 2.25rem; font-weight: 800; color: var(--slate-900); line-height: 1; }
+
+  .table-wrap { background: #fff; border: 1px solid var(--slate-200); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.05); margin-bottom: 1.5rem; }
+  .table-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #EEF2F7; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+  .table-header h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--slate-900); }
+  .table-scroll { overflow-x: auto; }
+  .table-wrap table { width: 100%; border-collapse: collapse; }
+  .table-wrap th { text-align: left; padding: 0.75rem 1.5rem; font-size: 0.68rem; font-weight: 700; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.07em; background: var(--slate-50); border-bottom: 1px solid var(--slate-200); }
+  .table-wrap td { padding: 0.9rem 1.5rem; font-size: 0.875rem; border-bottom: 1px solid var(--slate-100); color: var(--slate-700); }
+  .table-wrap tr:last-child td { border-bottom: none; }
+  .table-wrap tbody tr:hover td { background: #FAFBFC; }
+
+  .badge-green { background: #DCFCE7; color: #14532D; } .badge-yellow { background: #FEF9C3; color: #78350F; }
+  .badge-red { background: #FEE2E2; color: #7F1D1D; } .badge-blue { background: #DBEAFE; color: #1E3A8A; }
+  .badge-gray { background: #F1F5F9; color: #475569; } .badge-orange { background: #FFEDD5; color: #7C2D12; }
+
+  .btn-outline-dark { background: transparent; border: 1.5px solid var(--slate-200); color: var(--slate-700); }
+  .btn-outline-dark:hover { background: var(--slate-50); border-color: var(--slate-300); color: var(--slate-900); }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-danger:hover { background: #B91C1C; }
+  .progress-bar { background: var(--slate-200); border-radius: 9999px; height: 0.5rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--yellow), #FDE047); border-radius: 9999px; }
+  .progress-fill.green-fill { background: linear-gradient(90deg, #16A34A, #22C55E); }
+  .progress-fill.red-fill { background: linear-gradient(90deg, #DC2626, #F87171); }
+  .dash-list-row { padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--slate-100); display: flex; justify-content: space-between; align-items: center; }
+  .dash-list-row:last-child { border-bottom: none; }
+
+  .dcard { background: #fff; border: 1px solid var(--slate-200); border-radius: 14px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  .dcard h3 { color: var(--slate-900); font-size: 1rem; margin-bottom: 1rem; }
+  .dlabel { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--slate-700); }
+  .dinput { width: 100%; padding: 0.65rem 0.9rem; border: 1.5px solid var(--slate-200); border-radius: 0.5rem; font-size: 0.9rem; background: #fff; color: var(--slate-900); }
+  .dinput:focus { outline: none; border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(234,179,8,0.12); }
+  .dash-empty { text-align: center; color: var(--slate-400); padding: 1.25rem; }
+  .stat-card { border-top: 3px solid var(--yellow); }
+  .stat-card .sc-value { letter-spacing: -0.02em; }
+  .dcard > h3:first-child { border-left: 3px solid var(--yellow); padding-left: 0.65rem; }
+  .table-header h3 { border-left: 3px solid var(--yellow); padding-left: 0.6rem; }
+  .dash-content { animation: fadeUpDash 0.25s ease; }
+  @keyframes fadeUpDash { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  @media (max-width: 1024px) { .dsidebar { transform: translateX(-100%); } .dash-main { margin-left: 0; } }
 </style>
 </head>
 <body>
@@ -178,8 +280,24 @@
     const state = {
       currentPage: 'home',
       currentAdminTab: 'compliance',
-      user: null
+      user: null,
+      pending2fa: null,
+      clienteData: null,
+      gestaoData: null,
+      adminSection: 'dashboard',
+      clientSection: 'dashboard',
+      chatData: null,
+      chatConversas: [],
+      chatAberta: null,
+      ticketChat: null
     };
+
+    // Utilizadores de demonstração (iguais ao frontend React)
+    const DEMO_USERS = [
+      { perfil: 'Administrador', email: 'admin@cyrix.pt', pass: 'admin123', words: 'segurança, firewall, cifra' },
+      { perfil: 'Gestor', email: 'manager@cyrix.pt', pass: 'manager123', words: 'proteção, ameaça, escudo' },
+      { perfil: 'Cliente', email: 'cliente@empresa.pt', pass: 'client123', words: 'privacidade, código, autenticação' },
+    ];
 
     // INLINE FEATHER ICONS REPLACEMENT
     function icn(name) {
@@ -232,6 +350,7 @@
         { id: 'home', label: 'Início' },
         { id: 'about', label: 'Sobre Nós' },
         { id: 'services', label: 'Serviços' },
+        { id: 'nis2', label: 'NIS2' },
         { id: 'news', label: 'Artigos' },
         { id: 'contact', label: 'Contacto' }
       ];
@@ -248,6 +367,78 @@
         `;
       }
       nav.innerHTML = html;
+    }
+
+    // ===== PÁGINA NIS2 (informativa + autoavaliação interativa + estado do cliente) =====
+    const NIS2_REQS = [
+      ['gov', 'Políticas de segurança da informação e análise de risco aprovadas pela gestão'],
+      ['inc', 'Procedimento de gestão e notificação de incidentes (alerta 24h / notificação 72h)'],
+      ['cont', 'Plano de continuidade de negócio e recuperação (backups testados)'],
+      ['supply', 'Segurança da cadeia de fornecedores e prestadores de serviços'],
+      ['acq', 'Segurança na aquisição, desenvolvimento e manutenção de sistemas'],
+      ['mfa', 'Autenticação multifator (MFA) e comunicações seguras'],
+      ['crypto', 'Uso de criptografia e cifragem de dados sensíveis'],
+      ['train', 'Formação e sensibilização em cibersegurança dos colaboradores'],
+      ['access', 'Controlo de acessos e gestão de identidades (privilégio mínimo)'],
+      ['test', 'Testes e auditorias de segurança regulares (ex.: pentests)'],
+    ];
+    function nis2ResultHTML(done, total, faltam) {
+      const pct = total ? Math.round(done / total * 100) : 0;
+      let estado, cor;
+      if (pct >= 80) { estado = 'Conforme'; cor = 'var(--green)'; }
+      else if (pct >= 50) { estado = 'Em avaliação'; cor = 'var(--yellow)'; }
+      else { estado = 'Com pendências'; cor = 'var(--red)'; }
+      const recs = (faltam === null) ? '' : (faltam > 0
+        ? `<p style="color:var(--slate-400);font-size:0.85rem;margin-top:1rem">Faltam <b style="color:var(--yellow)">${faltam}</b> medida(s). Priorize as não assinaladas para reduzir o risco.</p>`
+        : `<p style="color:var(--green);font-size:0.9rem;margin-top:1rem">Excelente! Todas as medidas essenciais estão implementadas.</p>`);
+      return `
+        <h3 style="margin-bottom:1.5rem">Resultado</h3>
+        <div style="text-align:center">
+          <div style="font-size:3.5rem;font-weight:800;font-family:'Syne',sans-serif;color:${cor}">${pct}%</div>
+          <div style="display:inline-block;padding:0.35rem 1rem;border-radius:9999px;background:${cor};color:#0f172a;font-weight:700;margin-top:0.5rem">${estado}</div>
+        </div>
+        <div class="bar-container" style="width:100%;margin-top:1.5rem;height:0.75rem"><div class="bar-fill" style="width:${pct}%;background:${cor}"></div></div>
+        <p style="color:var(--slate-400);font-size:0.9rem;margin-top:1rem">${done} de ${total} medidas implementadas.</p>
+        ${recs}
+        <button class="btn btn-primary btn-sm" style="margin-top:1.5rem;width:100%" onclick="navigate('contact')">Falar com um consultor Cyrix</button>`;
+    }
+    function nis2Avaliar() {
+      const chks = Array.from(document.querySelectorAll('.nis2-chk'));
+      const total = chks.length, done = chks.filter(c => c.checked).length;
+      document.getElementById('nis2-result').innerHTML = nis2ResultHTML(done, total, total - done);
+    }
+    function renderNIS2() {
+      const items = NIS2_REQS.map(r => `<label style="display:flex;gap:0.6rem;align-items:flex-start;padding:0.6rem 0;border-bottom:1px solid var(--slate-700)"><input type="checkbox" class="nis2-chk" onchange="nis2Avaliar()" style="margin-top:0.2rem;width:18px;height:18px;accent-color:var(--yellow);flex-shrink:0"><span style="color:var(--slate-300);font-size:0.93rem">${r[1]}</span></label>`).join('');
+      let clientBlock = '';
+      if (state.user && state.user.perfil === 'Cliente' && state.clienteData) {
+        const k = state.clienteData.kpis || {};
+        clientBlock = `<div class="feature-card" style="margin-bottom:2.5rem;border-color:var(--yellow)">
+          <h3 style="margin-bottom:0.5rem">O seu estado de conformidade <span style="color:var(--yellow)">(dados reais)</span></h3>
+          <div class="grid grid-3" style="margin-top:1rem">
+            <div><div style="font-size:2rem;font-weight:800;color:var(--yellow)">${k.documentos || 0}</div><div style="color:var(--slate-400);font-size:0.85rem">Documentos de evidência</div></div>
+            <div><div style="font-size:2rem;font-weight:800;color:var(--yellow)">${k.incidentes || 0}</div><div style="color:var(--slate-400);font-size:0.85rem">Incidentes reportados</div></div>
+            <div><div style="font-size:2rem;font-weight:800;color:var(--yellow)">${(state.clienteData.ativos || []).length}</div><div style="color:var(--slate-400);font-size:0.85rem">Ativos registados</div></div>
+          </div></div>`;
+      }
+      return `
+        <div class="page-view">
+          <h1 class="page-title">Diretiva <span style="color:var(--yellow)">NIS2</span></h1>
+          <p class="page-subtitle">A diretiva (UE) 2022/2555 reforça a cibersegurança das entidades essenciais e importantes na UE. Avalie o nível de conformidade da sua organização.</p>
+          ${clientBlock}
+          <div class="grid grid-3" style="margin-bottom:3rem">
+            <div class="feature-card"><div class="feature-icon">${icn('shield')}</div><h3>O que é?</h3><p>Quadro legal europeu que obriga entidades essenciais e importantes a adotar medidas de gestão de risco de cibersegurança e a notificar incidentes.</p></div>
+            <div class="feature-card"><div class="feature-icon">${icn('users')}</div><h3>A quem se aplica?</h3><p>Energia, saúde, transportes, banca, infraestruturas digitais, administração pública, águas e fornecedores críticos.</p></div>
+            <div class="feature-card"><div class="feature-icon">${icn('alert')}</div><h3>Prazos & coimas</h3><p>Transposição em 2024. Incidentes: alerta em 24h e notificação em 72h. Coimas até 10M€ ou 2% do volume de negócios global.</p></div>
+          </div>
+          <h2 style="font-size:1.75rem;margin-bottom:1.5rem">Autoavaliação de conformidade</h2>
+          <div class="two-col" style="align-items:start;gap:2.5rem">
+            <div class="feature-card">
+              <p style="color:var(--slate-400);font-size:0.9rem;margin-bottom:0.75rem">Assinale as medidas que a sua organização já implementa:</p>
+              ${items}
+            </div>
+            <div class="feature-card" id="nis2-result">${nis2ResultHTML(0, NIS2_REQS.length, null)}</div>
+          </div>
+        </div>`;
     }
 
     // FRONTEND RENDERS (PÁGINAS PÚBLICAS)
@@ -350,6 +541,25 @@
     }
 
     function renderLogin() {
+      // 2.o passo — palavra de seguranca (2FA)
+      if (state.pending2fa) {
+        return `
+          <h2 class="page-title text-center">Verificação em 2 passos</h2>
+          <p class="page-subtitle text-center">Introduza uma das suas palavras de segurança.</p>
+          <div class="form-container">
+            <form id="fa2Form" onsubmit="handleVerify2fa(event)">
+              <div class="form-group"><label>Palavra de Segurança</label><input class="input" type="text" id="l_word" required placeholder="Ex: segurança"></div>
+              <button type="submit" class="btn btn-primary" style="width:100%">Verificar</button>
+              <button type="button" class="btn btn-outline" style="width:100%;margin-top:0.75rem" onclick="state.pending2fa=null; render();">← Voltar</button>
+            </form>
+          </div>`;
+      }
+      // 1.o passo — email + password + caixa de demonstracao
+      const demo = DEMO_USERS.map(u => `
+        <div style="padding:0.6rem 0;border-top:1px solid var(--slate-700)">
+          <div style="font-size:0.85rem"><b>${u.perfil}</b> — ${u.email} / ${u.pass}</div>
+          <div style="font-size:0.72rem;color:var(--slate-400)">2FA: ${u.words}</div>
+        </div>`).join('');
       return `
         <h2 class="page-title text-center">Acesso ao Sistema</h2>
         <p class="page-subtitle text-center">Introduza as credenciais fornecidas no contrato de suporte.</p>
@@ -359,39 +569,179 @@
             <div class="form-group"><label>Palavra-passe</label><input class="input" type="password" id="l_pass" required placeholder="••••••••"></div>
             <button type="submit" class="btn btn-primary" style="width:100%">Autenticar</button>
           </form>
+          <div style="margin-top:1.5rem">
+            <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--slate-500)">Utilizadores de Demonstração</div>
+            ${demo}
+          </div>
         </div>`;
     }
 
-    // CLIENT DASHBOARD (GET SIMULADO)
-    function renderClientDashboard() {
-      return `
-        <div class="dashboard-layout">
-          <div class="sidebar">
-            <h3 style="margin-bottom:1.5rem;color:var(--yellow)">Portal Cliente</h3>
-            <div class="sidebar-menu">
-              <div class="sidebar-item active">Visão Geral</div>
-            </div>
-          </div>
-          <div class="flex-col" style="gap:2rem">
-            <div><h2>Bem-vindo, ${state.user.nome}</h2><p style="color:var(--slate-400)">Estado contratual e suporte técnico ativo.</p></div>
-            <div class="grid grid-3">
-              <div class="metric-card"><div class="metric-label">Estado NIS2</div><div class="metric-value" style="color:var(--green)">Conforme</div></div>
-              <div class="metric-card"><div class="metric-label">Tickets Abertos</div><div class="metric-value">1</div></div>
-              <div class="metric-card"><div class="metric-label">Documentos Válidos</div><div class="metric-value">14</div></div>
-            </div>
-            <div class="chat-box">
-              <div style="padding:1rem;border-bottom:1px solid var(--slate-700);font-weight:600">Suporte Dedicado: Ticket #2041</div>
-              <div class="chat-messages">
-                <div class="chat-msg chat-msg-in">Olá. Analisámos o vosso plano e falta anexar o mapeamento de ativos externos.<div class="msg-meta">Auditor Cyrix • 09:30</div></div>
-                <div class="chat-msg chat-msg-out">Entendido. Vamos fazer o upload do PDF na pasta partilhada até ao final da tarde.<div class="msg-meta">${state.user.nome} • 10:15</div></div>
-              </div>
-              <div class="ticket-reply">
-                <input class="input flex-1" id="msgInput" placeholder="Escreva uma mensagem...">
-                <button class="btn btn-primary btn-sm" onclick="toast('Mensagem enviada com sucesso!')"><span>${icn('send')}</span> Enviar</button>
-              </div>
-            </div>
-          </div>
+    // CLIENT DASHBOARD — dados REAIS do cliente autenticado (via SQL/Django)
+    function setClientSection(id) {
+      if (id === 'mensagens') { carregarChatCliente(); return; }
+      state.clientSection = id; render();
+    }
+    function val(id) { const e = document.getElementById(id); return e ? e.value.trim() : ''; }
+    function bolhasChat(msgs) {
+      if (!msgs || !msgs.length) return `<div class="dash-empty">Ainda não há mensagens. Escreve a primeira!</div>`;
+      return msgs.map(m => {
+        const meu = m.autor_id === state.user.id;
+        return `<div style="display:flex;justify-content:${meu ? 'flex-end' : 'flex-start'};margin-bottom:0.6rem"><div style="max-width:72%;padding:0.55rem 0.85rem;border-radius:12px;background:${meu ? 'var(--yellow-light)' : '#fff'};border:1px solid var(--slate-200)"><div style="font-size:0.9rem;color:#0f172a">${m.texto}</div><div style="font-size:0.66rem;color:var(--slate-400);margin-top:0.25rem">${m.autor} · ${m.data}</div></div></div>`;
+      }).join('');
+    }
+    function carregarChatCliente() {
+      postDjango({ action: 'chat_cliente', client_id: state.user.id }, (d) => { state.chatData = d.dados || { mensagens: [] }; state.clientSection = 'mensagens'; render(); });
+    }
+    function renderChatCliente() {
+      const c = state.chatData || { mensagens: [] };
+      return `<div class="dcard" style="display:flex;flex-direction:column;height:62vh">
+          <h3>Mensagens com a equipa Cyrix</h3>
+          <div style="flex:1;overflow-y:auto;background:var(--slate-50);border-radius:8px;padding:1rem;margin:0.75rem 0">${bolhasChat(c.mensagens)}</div>
+          <div style="display:flex;gap:0.5rem"><input class="dinput" id="msg_input" placeholder="Escreve uma mensagem..." onkeydown="if(event.key==='Enter')enviarMensagemCliente()"><button class="btn btn-primary btn-sm" onclick="enviarMensagemCliente()">Enviar</button></div>
         </div>`;
+    }
+    function enviarMensagemCliente() {
+      const texto = val('msg_input');
+      if (!texto) return;
+      postDjango({ action: 'enviar_mensagem', conversation_id: state.chatData.conversation_id, sender_id: state.user.id, content: texto }, () => { carregarChatCliente(); });
+    }
+    function recarregarCliente(section) {
+      postDjango({ action: 'dados_cliente', id: state.user.id }, (d) => { state.clienteData = d.dados || state.clienteData; if (section) state.clientSection = section; render(); });
+    }
+    function criarTicket() {
+      const titulo = val('t_titulo');
+      if (!titulo) { toast('Indica o assunto do ticket.', 'error'); return; }
+      postDjango({ action: 'criar_ticket', client_id: state.user.id, titulo, categoria: val('t_categoria'), prioridade: val('t_prioridade'), descricao: val('t_desc') }, () => { toast('Ticket criado com sucesso.'); recarregarCliente('tickets'); });
+    }
+    function criarPedido() {
+      const titulo = val('p_titulo');
+      if (!titulo) { toast('Indica o título do pedido.', 'error'); return; }
+      postDjango({ action: 'criar_pedido', client_id: state.user.id, titulo, descricao: val('p_desc') }, () => { toast('Pedido submetido com sucesso.'); recarregarCliente('pedidos'); });
+    }
+    function guardarConta() {
+      const nome = val('c_nome'), email = val('c_email');
+      if (!nome || !email) { toast('Preenche nome e email.', 'error'); return; }
+      postDjango({ action: 'atualizar_conta', id: state.user.id, nome, email }, () => { toast('Conta atualizada.'); state.user.nome = nome; state.user.email = email; render(); });
+    }
+    function criarAtivo() {
+      const nome = val('a_nome');
+      if (!nome) { toast('Indica o nome do ativo.', 'error'); return; }
+      postDjango({ action: 'criar_ativo', client_id: state.user.id, nome, tipo: val('a_tipo'), quantidade: val('a_qtd') || 1, local: val('a_local'), criticidade: val('a_crit'), notas: '' }, () => { toast('Ativo registado.'); recarregarCliente('ativos'); });
+    }
+    function criarIncidente() {
+      const titulo = val('i_titulo');
+      if (!titulo) { toast('Indica o título do incidente.', 'error'); return; }
+      postDjango({ action: 'criar_incidente', client_id: state.user.id, titulo, data: val('i_data'), categoria: val('i_categoria'), severidade: val('i_sev'), descricao: val('i_desc') }, () => { toast('Incidente reportado.'); recarregarCliente('incidentes'); });
+    }
+    function renderClientDashboard() {
+      const u = state.user;
+      const d = state.clienteData || { kpis: {}, tickets: [], documentos: [], pedidos: [] };
+      const k = d.kpis || {};
+      const sec = state.clientSection || 'dashboard';
+      const stMap = { completed: ['badge-green', 'Concluído'], 'in-progress': ['badge-yellow', 'Em Progresso'], open: ['badge-blue', 'Aberto'], resolved: ['badge-green', 'Resolvido'], pending: ['badge-gray', 'Pendente'], overdue: ['badge-red', 'Atrasado'], closed: ['badge-gray', 'Fechado'], cancelled: ['badge-red', 'Cancelado'] };
+      const sb = (s) => { const m = stMap[s] || ['badge-gray', s || '—']; return `<span class="badge ${m[0]}">${m[1]}</span>`; };
+      const tRows = (d.tickets && d.tickets.length) ? d.tickets.map(t => `<tr><td><strong>${t.titulo}</strong></td><td><span class="badge badge-gray">${t.categoria}</span></td><td>${sb(t.estado)}</td><td><button class="btn btn-sm btn-outline-dark" onclick="abrirTicketChat(${t.id})">💬 Chat</button></td></tr>`).join('') : `<tr><td colspan="4" class="dash-empty">Sem tickets registados.</td></tr>`;
+      const docRows = (d.documentos && d.documentos.length) ? d.documentos.map(x => `<tr><td><strong>${x.nome}</strong></td><td><span class="badge badge-blue">${x.categoria}</span></td><td>${x.data || '—'}</td></tr>`).join('') : `<tr><td colspan="3" class="dash-empty">Sem documentos.</td></tr>`;
+      const pRows = (d.pedidos && d.pedidos.length) ? d.pedidos.map(x => `<tr><td><strong>${x.titulo}</strong></td><td>${sb(x.estado)}</td><td>${x.data || '—'}</td></tr>`).join('') : `<tr><td colspan="3" class="dash-empty">Sem pedidos de serviço.</td></tr>`;
+      const critMap = { critica: ['badge-red', 'Crítica'], alta: ['badge-orange', 'Alta'], media: ['badge-yellow', 'Média'], baixa: ['badge-gray', 'Baixa'] };
+      const critB = (c) => { const m = critMap[c] || ['badge-gray', c || '—']; return `<span class="badge ${m[0]}">${m[1]}</span>`; };
+      const incStMap = { aberto: ['badge-red', 'Aberto'], 'em-analise': ['badge-yellow', 'Em Análise'], resolvido: ['badge-green', 'Resolvido'], fechado: ['badge-gray', 'Fechado'] };
+      const incB = (s) => { const m = incStMap[s] || ['badge-gray', s || '—']; return `<span class="badge ${m[0]}">${m[1]}</span>`; };
+      const aRows = (d.ativos && d.ativos.length) ? d.ativos.map(a => `<tr><td><strong>${a.nome}</strong></td><td>${a.tipo}</td><td>${a.quantidade}</td><td>${a.local}</td><td>${critB(a.criticidade)}</td></tr>`).join('') : `<tr><td colspan="5" class="dash-empty">Sem ativos registados.</td></tr>`;
+      const iRows = (d.incidentes && d.incidentes.length) ? d.incidentes.map(x => `<tr><td><strong>${x.titulo}</strong></td><td>${x.data || '—'}</td><td>${x.categoria}</td><td>${critB(x.severidade)}</td><td>${incB(x.estado)}</td></tr>`).join('') : `<tr><td colspan="5" class="dash-empty">Sem incidentes reportados.</td></tr>`;
+
+      const stats = `<div class="stat-cards">
+          <div class="stat-card"><div class="sc-label">Tickets</div><div class="sc-value">${k.tickets || 0}</div></div>
+          <div class="stat-card"><div class="sc-label">Incidentes</div><div class="sc-value">${k.incidentes || 0}</div></div>
+          <div class="stat-card"><div class="sc-label">Documentos</div><div class="sc-value">${k.documentos || 0}</div></div>
+          <div class="stat-card"><div class="sc-label">Pedidos</div><div class="sc-value">${k.pedidos || 0}</div></div>
+        </div>`;
+
+      const ticketForm = `<div class="dcard"><h3>Abrir novo ticket</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+            <div><label class="dlabel">Assunto</label><input class="dinput" id="t_titulo"></div>
+            <div><label class="dlabel">Categoria</label><select class="dinput" id="t_categoria"><option value="technical">Técnico</option><option value="general">Geral</option><option value="incident">Incidente</option><option value="billing">Faturação</option><option value="other">Outro</option></select></div>
+            <div><label class="dlabel">Prioridade</label><select class="dinput" id="t_prioridade"><option value="low">Baixa</option><option value="medium" selected>Média</option><option value="high">Alta</option><option value="urgent">Urgente</option></select></div>
+            <div><label class="dlabel">Descrição</label><input class="dinput" id="t_desc"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="criarTicket()">Abrir ticket</button></div>`;
+      const pedidoForm = `<div class="dcard"><h3>Novo pedido de serviço</h3>
+          <div style="margin-bottom:1rem"><label class="dlabel">Título</label><input class="dinput" id="p_titulo" style="margin-bottom:1rem"><label class="dlabel">Descrição</label><textarea class="dinput" id="p_desc" rows="3" style="resize:vertical"></textarea></div>
+          <button class="btn btn-primary btn-sm" onclick="criarPedido()">Submeter pedido</button></div>`;
+      const contaForm = `<div class="dcard"><h3>A minha conta</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+            <div><label class="dlabel">Nome</label><input class="dinput" id="c_nome" value="${u.nome || ''}"></div>
+            <div><label class="dlabel">Email</label><input class="dinput" type="email" id="c_email" value="${u.email || ''}"></div>
+            <div><label class="dlabel">Perfil</label><input class="dinput" value="${u.perfil}" disabled style="background:var(--slate-100);color:var(--slate-500)"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="guardarConta()">Guardar alterações</button></div>`;
+      const ativoForm = `<div class="dcard"><h3>Registar ativo tecnológico</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+            <div><label class="dlabel">Nome</label><input class="dinput" id="a_nome"></div>
+            <div><label class="dlabel">Tipo</label><input class="dinput" id="a_tipo" placeholder="Servidor, Portátil, Software..."></div>
+            <div><label class="dlabel">Quantidade</label><input class="dinput" type="number" id="a_qtd" value="1" min="1"></div>
+            <div><label class="dlabel">Localização</label><input class="dinput" id="a_local"></div>
+            <div><label class="dlabel">Criticidade</label><select class="dinput" id="a_crit"><option value="baixa">Baixa</option><option value="media" selected>Média</option><option value="alta">Alta</option><option value="critica">Crítica</option></select></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="criarAtivo()">Registar ativo</button></div>`;
+      const incidenteForm = `<div class="dcard"><h3>Reportar incidente de segurança</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+            <div><label class="dlabel">Título</label><input class="dinput" id="i_titulo"></div>
+            <div><label class="dlabel">Data</label><input class="dinput" type="date" id="i_data"></div>
+            <div><label class="dlabel">Categoria</label><input class="dinput" id="i_categoria" placeholder="Ransomware, Phishing..."></div>
+            <div><label class="dlabel">Severidade</label><select class="dinput" id="i_sev"><option value="baixa">Baixa</option><option value="media" selected>Média</option><option value="alta">Alta</option><option value="critica">Crítica</option></select></div>
+          </div>
+          <div style="margin-bottom:1rem"><label class="dlabel">Descrição</label><textarea class="dinput" id="i_desc" rows="3" style="resize:vertical"></textarea></div>
+          <button class="btn btn-primary btn-sm" onclick="criarIncidente()">Reportar incidente</button></div>`;
+
+      let content;
+      if (sec === 'tickets') content = ticketForm + tbl2(['Assunto', 'Categoria', 'Estado', 'Chat'], tRows, 'Os meus tickets de suporte');
+      else if (sec === 'documentos') content = tbl2(['Nome', 'Categoria', 'Data'], docRows, 'Os meus documentos');
+      else if (sec === 'pedidos') content = pedidoForm + tbl2(['Pedido', 'Estado', 'Data'], pRows, 'Os meus pedidos de serviço');
+      else if (sec === 'ativos') content = ativoForm + tbl2(['Nome', 'Tipo', 'Qtd', 'Localização', 'Criticidade'], aRows, 'Os meus ativos tecnológicos');
+      else if (sec === 'incidentes') content = incidenteForm + tbl2(['Título', 'Data', 'Categoria', 'Severidade', 'Estado'], iRows, 'Os meus incidentes reportados');
+      else if (sec === 'mensagens') content = renderChatCliente();
+      else if (sec === 'conta') content = contaForm;
+      else {
+        const ativosT = (d.tickets || []).filter(t => t.estado !== 'resolved' && t.estado !== 'closed').length;
+        const scardsHome = `<div class="stat-cards">
+            <div class="stat-card"><div class="sc-label">Tickets Ativos</div><div class="sc-value">${ativosT}</div></div>
+            <div class="stat-card"><div class="sc-label">Documentos</div><div class="sc-value">${k.documentos || 0}</div></div>
+            <div class="stat-card"><div class="sc-label">Pedidos de Serviço</div><div class="sc-value">${k.pedidos || 0}</div></div>
+          </div>`;
+        const tList = (d.tickets && d.tickets.length) ? d.tickets.slice(0, 4).map(t => `<div class="dash-list-row"><div><div style="font-size:0.875rem;font-weight:500;color:#0f172a">${t.titulo}</div><div style="font-size:0.75rem;color:var(--slate-500)">${t.categoria} • Equipa Cyrix</div></div>${sb(t.estado)}</div>`).join('') : `<div style="padding:2rem;text-align:center;color:var(--slate-400)">Sem tickets.</div>`;
+        const pList = (d.pedidos && d.pedidos.length) ? d.pedidos.slice(0, 4).map(s => `<div class="dash-list-row"><div style="font-size:0.875rem;font-weight:500;color:#0f172a">${s.titulo}</div>${sb(s.estado)}</div>`).join('') : `<div style="padding:2rem;text-align:center;color:var(--slate-400)">Sem pedidos.</div>`;
+        content = scardsHome + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+            <div class="table-wrap"><div class="table-header"><h3>Tickets Recentes</h3><button class="btn btn-outline-dark btn-sm" onclick="setClientSection('tickets')">Ver todos</button></div>${tList}</div>
+            <div class="table-wrap"><div class="table-header"><h3>Pedidos de Serviço</h3><button class="btn btn-outline-dark btn-sm" onclick="setClientSection('pedidos')">Ver todos</button></div>${pList}</div>
+          </div>`;
+      }
+
+      const menu = [
+        { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+        { id: 'mensagens', label: 'Mensagens', icon: '💬' },
+        { id: 'tickets', label: 'Tickets de Suporte', icon: '🎫' },
+        { id: 'pedidos', label: 'Pedidos de Serviço', icon: '📋' },
+        { id: 'documentos', label: 'Documentos', icon: '📄' },
+        { id: 'ativos', label: 'Ativos Tecnológicos', icon: '🖥️' },
+        { id: 'incidentes', label: 'Report de Incidentes', icon: '⚠️' },
+        { id: 'conta', label: 'A Minha Conta', icon: '👤' },
+      ];
+      const titles = { dashboard: 'Dashboard', mensagens: 'Mensagens', tickets: 'Tickets de Suporte', pedidos: 'Pedidos de Serviço', documentos: 'Documentos', ativos: 'Ativos Tecnológicos', incidentes: 'Report de Incidentes', conta: 'A Minha Conta' };
+      const nav = menu.map(m => `<button class="dsidebar-link ${sec === m.id ? 'active' : ''}" onclick="setClientSection('${m.id}')"><span>${m.icon}</span> ${m.label}</button>`).join('');
+      return `
+        <div class="dash-layout">
+          <aside class="dsidebar">
+            <div class="dsidebar-logo" onclick="navigate('home')"><span style="font-size:1.4rem">🛡️</span><div><div class="lg-brand">Cyrix</div><div class="lg-sub">Portal do Cliente</div></div></div>
+            <div class="dsidebar-user"><div class="u-name">${u.nome}</div><div class="u-role">${u.empresa || 'Cliente'}</div></div>
+            <nav class="dsidebar-nav"><div class="dsidebar-sec">Portal</div>${nav}</nav>
+            <div class="dsidebar-footer"><button class="btn btn-outline btn-sm" style="width:100%" onclick="logout()">Terminar Sessão</button></div>
+          </aside>
+          <div class="dash-main">
+            <div class="dash-topbar"><div class="dash-topbar-title">${titles[sec] || 'Portal'}</div><div style="font-size:0.78rem;color:var(--slate-500)">Dados reais · PostgreSQL</div></div>
+            <div class="dash-content">${content}</div>
+          </div>
+        </div>${renderTicketModal()}`;
     }
 
     // ============================================================
@@ -480,23 +830,274 @@
           <div class="table-wrapper"><table class="table"><thead><tr><th>Estado</th><th>Total de Pedidos</th><th>Tempo Médio de Resolução</th></tr></thead><tbody>${rows}</tbody></table></div>`;
       }
 
+      // Dashboard rico (estilo frontend) alimentado pelas 5 metricas SQL (dbData)
+      const _n = (v) => Number(v || 0);
+      const _sum = (a, k) => a.reduce((s, x) => s + _n(x[k]), 0);
+      const stCls = (s) => ({completed:'b-green','in-progress':'b-yellow',open:'b-blue',overdue:'b-red',pending:'b-gray',resolved:'b-gray',closed:'b-gray'}[s] || 'b-gray');
+      const bdg = (s) => `<span class="dbadge ${stCls(s)}">${s || '—'}</span>`;
+      const emptyRow = (c, m) => `<tr><td colspan="${c}" style="text-align:center;color:var(--slate-400);padding:1rem">${m}</td></tr>`;
+      const kUtil = _sum(dbData.perfis, 'total'), kNis = _sum(dbData.conformidade, 'total');
+      const kTick = _sum(dbData.tickets, 'total_tickets'), kInc = _sum(dbData.incidentes, 'total_incidentes');
+      const maxConf = Math.max(1, ...dbData.conformidade.map(x => _n(x.total)));
+      const maxPerf = Math.max(1, ...dbData.perfis.map(x => _n(x.total)));
+      const confRows = dbData.conformidade.length ? dbData.conformidade.map(x => `<tr><td>${bdg(x.estado_nis2)}</td><td><b>${x.total}</b></td><td><div class="dbar"><i style="width:${_n(x.total)/maxConf*100}%"></i></div></td></tr>`).join('') : emptyRow(3, 'Sem contratos NIS2.');
+      const perfRows = dbData.perfis.length ? dbData.perfis.map(x => `<tr><td><b>${x.perfil}</b></td><td>${x.total}</td><td><div class="dbar"><i style="width:${_n(x.total)/maxPerf*100}%"></i></div></td></tr>`).join('') : emptyRow(3, 'Sem utilizadores.');
+      const incRows = dbData.incidentes.length ? dbData.incidentes.map((x, i) => `<tr><td><span class="rownum">${i+1}</span></td><td><b>${x.nome}</b></td><td><span class="dbadge b-red">${x.total_incidentes}</span></td></tr>`).join('') : emptyRow(3, 'Sem incidentes.');
+      const tickRows = dbData.tickets.length ? dbData.tickets.map(x => `<tr><td>${bdg(x.estado)}</td><td><b>${x.total_tickets}</b></td><td>${x.tempo_medio_resolucao ? x.tempo_medio_resolucao + ' dias' : '—'}</td></tr>`).join('') : emptyRow(3, 'Sem tickets.');
+      const docRows = dbData.documentos.length ? dbData.documentos.map(x => `<tr><td>${x.cliente}</td><td><span class="dbadge b-blue">${x.mes}</span></td><td><b>${x.total_documentos}</b></td></tr>`).join('') : emptyRow(3, 'Sem documentos.');
+      const ficha9 = `
+        <div class="kpis">
+          <div class="kpi"><div class="k-ic">${icn('users')}</div><div class="k-label">Utilizadores</div><div class="k-val">${kUtil}</div></div>
+          <div class="kpi"><div class="k-ic">${icn('shield')}</div><div class="k-label">Contratos NIS2</div><div class="k-val">${kNis}</div></div>
+          <div class="kpi"><div class="k-ic">${icn('fileText')}</div><div class="k-label">Tickets</div><div class="k-val">${kTick}</div></div>
+          <div class="kpi"><div class="k-ic">${icn('alert')}</div><div class="k-label">Incidentes</div><div class="k-val">${kInc}</div></div>
+        </div>
+        <div class="panels">
+          <div class="panel"><div class="panel-h"><span class="num">1</span>Conformidade NIS2 por estado</div><div class="panel-b"><table class="dtable"><thead><tr><th>Estado</th><th>Total</th><th>Distribuição</th></tr></thead><tbody>${confRows}</tbody></table></div></div>
+          <div class="panel"><div class="panel-h"><span class="num">4</span>Utilizadores por perfil</div><div class="panel-b"><table class="dtable"><thead><tr><th>Perfil</th><th>Total</th><th>Distribuição</th></tr></thead><tbody>${perfRows}</tbody></table></div></div>
+          <div class="panel"><div class="panel-h"><span class="num">2</span>Top 5 clientes com mais incidentes</div><div class="panel-b"><table class="dtable"><thead><tr><th>#</th><th>Cliente</th><th>Incidentes</th></tr></thead><tbody>${incRows}</tbody></table></div></div>
+          <div class="panel"><div class="panel-h"><span class="num">5</span>Tickets &amp; tempo de resolução</div><div class="panel-b"><table class="dtable"><thead><tr><th>Estado</th><th>Total</th><th>Tempo médio</th></tr></thead><tbody>${tickRows}</tbody></table></div></div>
+          <div class="panel span2"><div class="panel-h"><span class="num">3</span>Documentos submetidos por cliente / mês</div><div class="panel-b"><table class="dtable"><thead><tr><th>Cliente</th><th>Mês</th><th>Total</th></tr></thead><tbody>${docRows}</tbody></table></div></div>
+        </div>`;
+
+      const isAdmin = state.user.perfil === 'Administrador';
+      const sec = state.adminSection || 'dashboard';
+      const secTitles = { dashboard: 'Dashboard — Ficha 9', mensagens: 'Mensagens', utilizadores: 'Gestão de Utilizadores', clientes: 'Clientes', tickets: 'Tickets de Suporte', pedidos: 'Pedidos de Serviço', documentos: 'Documentos', servicos: 'Serviços Anuais', contactos: 'Contactos', auditoria: 'Log de Auditoria', conta: 'A Minha Conta' };
+      const menu = [{ id: 'dashboard', label: 'Dashboard', icon: '📊' }, { id: 'mensagens', label: 'Mensagens', icon: '💬' }];
+      if (isAdmin) menu.push({ id: 'utilizadores', label: 'Utilizadores', icon: '👥' });
+      menu.push({ id: 'clientes', label: 'Clientes', icon: '🏢' }, { id: 'tickets', label: 'Tickets', icon: '🎫' }, { id: 'pedidos', label: 'Pedidos', icon: '📋' }, { id: 'documentos', label: 'Documentos', icon: '📄' }, { id: 'servicos', label: 'Serviços Anuais', icon: '🔄' }, { id: 'contactos', label: 'Contactos', icon: '📬' });
+      if (isAdmin) menu.push({ id: 'auditoria', label: 'Log de Auditoria', icon: '🔍' });
+      menu.push({ id: 'conta', label: 'A Minha Conta', icon: '👤' });
+      const nav = menu.map(m => `<button class="dsidebar-link ${sec === m.id ? 'active' : ''}" onclick="setAdminSection('${m.id}')"><span>${m.icon}</span> ${m.label}</button>`).join('');
+
+      const g = state.gestaoData || {};
+      const stMapA = { open: ['badge-blue', 'Aberto'], 'in-progress': ['badge-yellow', 'Em Progresso'], resolved: ['badge-green', 'Resolvido'], closed: ['badge-gray', 'Fechado'], pending: ['badge-gray', 'Pendente'], completed: ['badge-green', 'Concluído'], overdue: ['badge-red', 'Atrasado'], cancelled: ['badge-red', 'Cancelado'] };
+      const admSb = (s) => { const m = stMapA[s] || ['badge-gray', s || '—']; return `<span class="badge ${m[0]}">${m[1]}</span>`; };
+      const nClientes = (g.clientes || []).filter(c => c.active).length;
+      const nMsg = (g.contactos || []).filter(c => !c.lido).length;
+      const nTickets = (g.tickets || []).filter(t => t.estado !== 'resolved' && t.estado !== 'closed').length;
+      const nServ = (g.servicos || []).filter(s => s.estado === 'in-progress').length;
+      const admTList = (g.tickets && g.tickets.length) ? g.tickets.slice(0, 3).map(t => `<div class="dash-list-row"><div><div style="font-size:0.875rem;font-weight:500;color:#0f172a">${t.titulo}</div><div style="font-size:0.75rem;color:var(--slate-500)">${t.cliente}</div></div>${admSb(t.estado)}</div>`).join('') : `<div style="padding:2rem;text-align:center;color:var(--slate-400)">Sem tickets.</div>`;
+      const admSList = (g.servicos && g.servicos.length) ? g.servicos.slice(0, 3).map(s => `<div style="padding:0.75rem 1.5rem;border-bottom:1px solid var(--slate-100)"><div style="display:flex;justify-content:space-between;margin-bottom:0.375rem"><span style="font-size:0.875rem;color:#0f172a">${s.cliente}</span>${admSb(s.estado)}</div><div class="progress-bar"><div class="progress-fill ${s.estado === 'completed' ? 'green-fill' : s.estado === 'overdue' ? 'red-fill' : ''}" style="width:${s.progresso}%"></div></div><div style="font-size:0.7rem;color:var(--slate-500);margin-top:0.25rem">${s.progresso}%</div></div>`).join('') : `<div style="padding:2rem;text-align:center;color:var(--slate-400)">Sem serviços.</div>`;
+      const adminHome = `<div class="stat-cards">
+          <div class="stat-card"><div class="sc-label">Total Clientes</div><div class="sc-value">${nClientes}</div></div>
+          <div class="stat-card"><div class="sc-label">Mensagens Novas</div><div class="sc-value">${nMsg}</div></div>
+          <div class="stat-card"><div class="sc-label">Tickets Abertos</div><div class="sc-value">${nTickets}</div></div>
+          <div class="stat-card"><div class="sc-label">Serviços Ativos</div><div class="sc-value">${nServ}</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+          <div class="table-wrap"><div class="table-header"><h3>Tickets Recentes</h3><button class="btn btn-outline-dark btn-sm" onclick="setAdminSection('tickets')">Ver todos</button></div>${admTList}</div>
+          <div class="table-wrap"><div class="table-header"><h3>Serviços Anuais</h3><button class="btn btn-outline-dark btn-sm" onclick="setAdminSection('servicos')">Ver todos</button></div>${admSList}</div>
+        </div>`;
+
+      let content;
+      if (sec === 'mensagens') content = renderChatAdmin();
+      else if (sec === 'utilizadores' && isAdmin) content = renderGestaoUtilizadores();
+      else if (sec === 'clientes') content = renderGestaoClientes();
+      else if (sec === 'tickets') content = renderGestaoTickets();
+      else if (sec === 'pedidos') content = renderGestaoPedidos();
+      else if (sec === 'documentos') content = renderGestaoDocumentos();
+      else if (sec === 'servicos') content = renderGestaoServicos();
+      else if (sec === 'contactos') content = renderGestaoContactos();
+      else if (sec === 'auditoria' && isAdmin) content = renderGestaoAuditoria();
+      else if (sec === 'conta') content = renderGestaoConta();
+      else content = adminHome + '<h2 style="font-size:1.4rem;margin:0.5rem 0 1.25rem;color:#0f172a">Métricas de Base de Dados (Ficha 9)</h2>' + ficha9;
+
       return `
-        <div class="dashboard-layout">
-          <div class="sidebar">
-            <h3 style="margin-bottom:1.5rem;color:var(--yellow)">Painel de Controlo</h3>
-            <div class="sidebar-menu">
-              <div class="sidebar-item ${t === 'compliance' ? 'active' : ''}" onclick="setAdminTab('compliance')">1. Estados NIS2</div>
-              <div class="sidebar-item ${t === 'incidentes' ? 'active' : ''}" onclick="setAdminTab('incidentes')">2. Top 5 Incidentes</div>
-              <div class="sidebar-item ${t === 'documentos' ? 'active' : ''}" onclick="setAdminTab('documentos')">3. Documentação</div>
-              <div class="sidebar-item ${t === 'perfis' ? 'active' : ''}" onclick="setAdminTab('perfis')">4. Perfis de Sistema</div>
-              <div class="sidebar-item ${t === 'tickets' ? 'active' : ''}" onclick="setAdminTab('tickets')">5. SLA de Tickets</div>
-            </div>
+        <div class="dash-layout">
+          <aside class="dsidebar">
+            <div class="dsidebar-logo" onclick="navigate('home')"><span style="font-size:1.4rem">🛡️</span><div><div class="lg-brand">Cyrix</div><div class="lg-sub">${isAdmin ? 'Administração' : 'Gestão'}</div></div></div>
+            <div class="dsidebar-user"><div class="u-name">${state.user.nome}</div><div class="u-role">${state.user.perfil}</div></div>
+            <nav class="dsidebar-nav"><div class="dsidebar-sec">Portal</div>${nav}</nav>
+            <div class="dsidebar-footer"><button class="btn btn-outline btn-sm" style="width:100%" onclick="logout()">Terminar Sessão</button></div>
+          </aside>
+          <div class="dash-main">
+            <div class="dash-topbar"><div class="dash-topbar-title">${secTitles[sec] || 'Painel'}</div><div style="font-size:0.78rem;color:var(--slate-500)">Dados reais · PostgreSQL</div></div>
+            <div class="dash-content">${content}</div>
           </div>
-          <div class="flex-col" style="gap:1.5rem">
-            <div><h2>Consola Administrativa - Relatório Ficha 9</h2><p style="color:var(--slate-400)">Dados analíticos extraídos de funções ativas em <code>basededados.py</code>.</p></div>
-            ${mainContent}
+        </div>${renderTicketModal()}`;
+    }
+
+    // ===== Secções de gestão (dados reais via SQL) =====
+    function tbl2(headers, rowsHtml, title) {
+      const head = title ? `<div class="table-header"><h3>${title}</h3></div>` : '';
+      return `<div class="table-wrap">${head}<div class="table-scroll"><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div></div>`;
+    }
+    function renderGestaoUtilizadores() {
+      const us = (state.gestaoData && state.gestaoData.utilizadores) || [];
+      const rows = us.length ? us.map(u => `<tr><td>${u.id}</td><td><strong>${u.nome}</strong></td><td>${u.email}</td><td><span class="badge badge-yellow">${u.perfil}</span></td><td><button class="btn btn-sm btn-outline-dark" onclick="editarUtilizador(${u.id})">Editar</button> <button class="btn btn-sm btn-danger" onclick="eliminarUtilizador(${u.id})">Apagar</button></td></tr>`).join('') : `<tr><td colspan="5" class="dash-empty">Sem utilizadores.</td></tr>`;
+      return `
+        <div class="dcard">
+          <h3 id="u_form_title">Criar utilizador</h3>
+          <input type="hidden" id="u_id" value="">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+            <div><label class="dlabel">Nome</label><input class="dinput" id="u_nome"></div>
+            <div><label class="dlabel">Email</label><input class="dinput" type="email" id="u_email"></div>
+            <div><label class="dlabel">Perfil</label><select class="dinput" id="u_perfil"><option>Administrador</option><option>Colaborador</option><option>Cliente</option></select></div>
+            <div id="u_pass_group"><label class="dlabel">Palavra-passe</label><input class="dinput" type="password" id="u_pass"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="guardarUtilizador()">Guardar</button>
+          <button class="btn btn-outline-dark btn-sm" onclick="render()">Limpar</button>
+        </div>
+        ${tbl2(['ID', 'Nome', 'Email', 'Perfil', 'Ações'], rows, 'Utilizadores registados')}`;
+    }
+    function renderGestaoClientes() {
+      const cs = (state.gestaoData && state.gestaoData.clientes) || [];
+      const rows = cs.length ? cs.map(c => `<tr><td>${c.id}</td><td><strong>${c.nome}</strong></td><td>${c.email}</td><td>${c.empresa || '—'}</td><td><span class="badge ${c.active ? 'badge-green' : 'badge-red'}">${c.active ? 'Ativo' : 'Inativo'}</span></td></tr>`).join('') : `<tr><td colspan="5" class="dash-empty">Sem clientes.</td></tr>`;
+      return tbl2(['ID', 'Nome', 'Email', 'Empresa', 'Estado'], rows, 'Clientes registados');
+    }
+    function estadoSelect(estados, atual, fn, id) {
+      return `<select class="dinput" style="padding:0.3rem 0.5rem;font-size:0.8rem;width:auto" onchange="${fn}(${id}, this.value)">${estados.map(e => `<option value="${e[0]}" ${e[0] === atual ? 'selected' : ''}>${e[1]}</option>`).join('')}</select>`;
+    }
+    function renderGestaoTickets() {
+      const ts = (state.gestaoData && state.gestaoData.tickets) || [];
+      const est = [['open', 'Aberto'], ['in-progress', 'Em Progresso'], ['resolved', 'Resolvido'], ['closed', 'Fechado']];
+      const rows = ts.length ? ts.map(t => `<tr><td>${t.id}</td><td><strong>${t.titulo}</strong></td><td>${t.cliente}</td><td><span class="badge badge-gray">${t.categoria}</span></td><td>${t.prioridade}</td><td>${estadoSelect(est, t.estado, 'atualizarEstadoTicket', t.id)}</td><td><button class="btn btn-sm btn-outline-dark" onclick="abrirTicketChat(${t.id})">💬 Chat</button></td></tr>`).join('') : `<tr><td colspan="7" class="dash-empty">Sem tickets.</td></tr>`;
+      return tbl2(['ID', 'Assunto', 'Cliente', 'Categoria', 'Prioridade', 'Estado', 'Chat'], rows, 'Tickets de suporte');
+    }
+    function renderGestaoPedidos() {
+      const ps = (state.gestaoData && state.gestaoData.pedidos) || [];
+      const est = [['pending', 'Pendente'], ['in-progress', 'Em Progresso'], ['completed', 'Concluído'], ['cancelled', 'Cancelado']];
+      const rows = ps.length ? ps.map(p => `<tr><td>${p.id}</td><td><strong>${p.titulo}</strong></td><td>${p.cliente}</td><td>${p.data || '—'}</td><td>${estadoSelect(est, p.estado, 'atualizarEstadoPedido', p.id)}</td></tr>`).join('') : `<tr><td colspan="5" class="dash-empty">Sem pedidos.</td></tr>`;
+      return tbl2(['ID', 'Pedido', 'Cliente', 'Data', 'Estado'], rows, 'Pedidos de serviço');
+    }
+    function renderGestaoDocumentos() {
+      const ds = (state.gestaoData && state.gestaoData.documentos) || [];
+      const rows = ds.length ? ds.map(d => `<tr><td>${d.id}</td><td><strong>${d.nome}</strong></td><td>${d.cliente}</td><td><span class="badge badge-blue">${d.categoria}</span></td><td>${d.data || '—'}</td><td><button class="btn btn-sm btn-danger" onclick="eliminarDocumento(${d.id})">Apagar</button></td></tr>`).join('') : `<tr><td colspan="6" class="dash-empty">Sem documentos.</td></tr>`;
+      return tbl2(['ID', 'Nome', 'Cliente', 'Categoria', 'Data', 'Ação'], rows, 'Documentos');
+    }
+    function renderGestaoServicos() {
+      const ss = (state.gestaoData && state.gestaoData.servicos) || [];
+      const est = [['pending', 'Pendente'], ['in-progress', 'Em Progresso'], ['completed', 'Concluído'], ['overdue', 'Atrasado'], ['cancelled', 'Cancelado']];
+      const rows = ss.length ? ss.map(s => `<tr><td>${s.id}</td><td><strong>${s.servico}</strong></td><td>${s.cliente}</td><td>${s.progresso}%</td><td>${s.prazo || '—'}</td><td>${estadoSelect(est, s.estado, 'atualizarEstadoServico', s.id)}</td></tr>`).join('') : `<tr><td colspan="6" class="dash-empty">Sem serviços anuais.</td></tr>`;
+      return tbl2(['ID', 'Serviço', 'Cliente', 'Progresso', 'Prazo', 'Estado'], rows, 'Serviços anuais');
+    }
+    function renderGestaoContactos() {
+      const cs = (state.gestaoData && state.gestaoData.contactos) || [];
+      const rows = cs.length ? cs.map(c => `<tr><td>${c.id}</td><td><strong>${c.nome}</strong></td><td>${c.email}</td><td>${c.empresa}</td><td style="max-width:260px">${c.mensagem}</td><td>${c.lido ? '<span class="badge badge-green">Lido</span>' : '<span class="badge badge-yellow">Novo</span>'}</td><td>${c.lido ? '—' : `<button class="btn btn-sm btn-outline-dark" onclick="marcarContactoLido(${c.id})">Marcar lido</button>`}</td></tr>`).join('') : `<tr><td colspan="7" class="dash-empty">Sem contactos.</td></tr>`;
+      return tbl2(['ID', 'Nome', 'Email', 'Empresa', 'Mensagem', 'Estado', 'Ação'], rows, 'Mensagens de contacto (site público)');
+    }
+    function renderGestaoAuditoria() {
+      const as = (state.gestaoData && state.gestaoData.auditoria) || [];
+      const sevMap = { info: 'badge-blue', warning: 'badge-yellow', critical: 'badge-red' };
+      const rows = as.length ? as.map(a => `<tr><td>${a.data}</td><td>${a.acao}</td><td><span class="badge badge-gray">${a.categoria}</span></td><td><span class="badge ${sevMap[a.severidade] || 'badge-gray'}">${a.severidade}</span></td><td>${a.utilizador}</td></tr>`).join('') : `<tr><td colspan="5" class="dash-empty">Sem registos.</td></tr>`;
+      return tbl2(['Data', 'Ação', 'Categoria', 'Severidade', 'Utilizador'], rows, 'Log de auditoria (últimos 100)');
+    }
+    function renderGestaoConta() {
+      const u = state.user;
+      return `<div class="dcard"><h3>A minha conta</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+            <div><label class="dlabel">Nome</label><input class="dinput" id="c_nome" value="${u.nome || ''}"></div>
+            <div><label class="dlabel">Email</label><input class="dinput" type="email" id="c_email" value="${u.email || ''}"></div>
+            <div><label class="dlabel">Perfil</label><input class="dinput" value="${u.perfil}" disabled style="background:var(--slate-100);color:var(--slate-500)"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="guardarConta()">Guardar alterações</button></div>`;
+    }
+    function setAdminSection(id) {
+      if (id === 'mensagens') { carregarConversas(); return; }
+      state.adminSection = id; render();
+    }
+    function carregarConversas() {
+      postDjango({ action: 'chat_clientes_lista' }, (d) => { state.chatConversas = d.dados || []; state.chatAberta = null; state.adminSection = 'mensagens'; render(); });
+    }
+    function abrirConversa(clientId) {
+      postDjango({ action: 'chat_cliente', client_id: clientId }, (d) => { const dd = d.dados || {}; state.chatAberta = { id: dd.conversation_id, client_id: clientId, mensagens: dd.mensagens || [] }; state.adminSection = 'mensagens'; render(); });
+    }
+    function enviarMensagemStaff() {
+      const texto = val('smsg_input');
+      if (!texto || !state.chatAberta) return;
+      postDjango({ action: 'enviar_mensagem', conversation_id: state.chatAberta.id, sender_id: state.user.id, content: texto }, () => { abrirConversa(state.chatAberta.id); });
+    }
+    function renderChatAdmin() {
+      const convs = state.chatConversas || [];
+      const list = convs.length ? convs.map(c => `<div onclick="abrirConversa(${c.client_id})" style="padding:0.75rem 1rem;border-bottom:1px solid var(--slate-100);cursor:pointer;${state.chatAberta && state.chatAberta.client_id === c.client_id ? 'background:var(--slate-50)' : ''}"><div style="font-weight:600;color:#0f172a">${c.cliente}</div><div style="font-size:0.78rem;color:var(--slate-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.ultima || 'Sem mensagens ainda'}</div></div>`).join('') : `<div class="dash-empty">Sem clientes.</div>`;
+      let painel;
+      if (state.chatAberta) {
+        painel = `<div style="flex:1;overflow-y:auto;background:var(--slate-50);border-radius:8px;padding:1rem;margin-bottom:0.75rem">${bolhasChat(state.chatAberta.mensagens)}</div>
+          <div style="display:flex;gap:0.5rem"><input class="dinput" id="smsg_input" placeholder="Responder ao cliente..." onkeydown="if(event.key==='Enter')enviarMensagemStaff()"><button class="btn btn-primary btn-sm" onclick="enviarMensagemStaff()">Enviar</button></div>`;
+      } else {
+        painel = `<div class="dash-empty" style="margin:auto">Seleciona uma conversa à esquerda.</div>`;
+      }
+      return `<div style="display:grid;grid-template-columns:250px 1fr;gap:1rem;height:64vh">
+          <div class="table-wrap" style="overflow-y:auto;margin:0">${list}</div>
+          <div class="dcard" style="display:flex;flex-direction:column;margin:0">${painel}</div>
+        </div>`;
+    }
+    // ===== Chat interno de um ticket (ticket_comments) =====
+    function abrirTicketChat(ticketId) {
+      postDjango({ action: 'ticket_comentarios', ticket_id: ticketId }, (d) => { state.ticketChat = { ticket_id: ticketId, comentarios: d.dados || [] }; render(); });
+    }
+    function fecharTicketChat() { state.ticketChat = null; render(); }
+    function enviarComentarioTicket() {
+      const texto = val('tc_input');
+      if (!texto || !state.ticketChat) return;
+      postDjango({ action: 'ticket_comentar', ticket_id: state.ticketChat.ticket_id, user_id: state.user.id, content: texto }, () => { abrirTicketChat(state.ticketChat.ticket_id); });
+    }
+    function renderTicketModal() {
+      if (!state.ticketChat) return '';
+      const c = state.ticketChat;
+      const bolhas = (c.comentarios && c.comentarios.length) ? c.comentarios.map(m => {
+        const meu = m.autor_id === state.user.id;
+        return `<div style="display:flex;justify-content:${meu ? 'flex-end' : 'flex-start'};margin-bottom:0.5rem"><div style="max-width:76%;padding:0.5rem 0.8rem;border-radius:10px;background:${meu ? 'var(--yellow-light)' : '#fff'};border:1px solid var(--slate-200)"><div style="font-size:0.88rem;color:#0f172a">${m.texto}</div><div style="font-size:0.66rem;color:var(--slate-500);margin-top:0.2rem">${m.autor} · ${m.data}</div></div></div>`;
+      }).join('') : `<div class="dash-empty">Sem mensagens neste ticket. Escreve a primeira.</div>`;
+      return `<div onclick="if(event.target===this)fecharTicketChat()" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:1.5rem">
+          <div style="background:#fff;border-radius:14px;width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
+            <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--slate-200);display:flex;justify-content:space-between;align-items:center"><h3 style="color:#0f172a">Ticket #${c.ticket_id} — Conversa</h3><button class="btn btn-sm btn-outline-dark" onclick="fecharTicketChat()">Fechar</button></div>
+            <div style="flex:1;overflow-y:auto;padding:1rem;background:var(--slate-50)">${bolhas}</div>
+            <div style="display:flex;gap:0.5rem;padding:0.85rem 1.25rem;border-top:1px solid var(--slate-200)"><input class="dinput" id="tc_input" placeholder="Escreve uma mensagem..." onkeydown="if(event.key==='Enter')enviarComentarioTicket()"><button class="btn btn-primary btn-sm" onclick="enviarComentarioTicket()">Enviar</button></div>
           </div>
         </div>`;
+    }
+    function postDjango(payload, onOk) {
+      fetch('', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, body: JSON.stringify(payload) })
+        .then(r => r.json()).then(d => { if (d.status === 'success') onOk(d); else toast(d.message || 'Erro na operação.', 'error'); })
+        .catch(() => toast('Erro interno do servidor Django.', 'error'));
+    }
+    function recarregarGestao(section) {
+      postDjango({ action: 'dados_gestao' }, (d) => { state.gestaoData = d.dados || state.gestaoData; state.adminSection = section; render(); });
+    }
+    function guardarUtilizador() {
+      const id = document.getElementById('u_id').value;
+      const nome = document.getElementById('u_nome').value, email = document.getElementById('u_email').value, perfil = document.getElementById('u_perfil').value;
+      if (!nome || !email) { toast('Preenche nome e email.', 'error'); return; }
+      if (id) { postDjango({ action: 'atualizar_utilizador', id, nome, email, perfil }, () => { toast('Utilizador atualizado.'); recarregarGestao('utilizadores'); }); }
+      else {
+        const password = document.getElementById('u_pass').value;
+        if (!password) { toast('Define uma palavra-passe.', 'error'); return; }
+        postDjango({ action: 'criar_utilizador', nome, email, password, perfil }, () => { toast('Utilizador criado.'); recarregarGestao('utilizadores'); });
+      }
+    }
+    function editarUtilizador(id) {
+      const u = ((state.gestaoData && state.gestaoData.utilizadores) || []).find(x => x.id === id); if (!u) return;
+      state.adminSection = 'utilizadores'; render();
+      setTimeout(() => {
+        document.getElementById('u_id').value = u.id;
+        document.getElementById('u_nome').value = u.nome;
+        document.getElementById('u_email').value = u.email;
+        document.getElementById('u_perfil').value = u.perfil;
+        document.getElementById('u_form_title').innerText = 'Editar utilizador';
+        const pg = document.getElementById('u_pass_group'); if (pg) pg.style.display = 'none';
+      }, 0);
+    }
+    function eliminarUtilizador(id) {
+      if (!confirm('Apagar este utilizador?')) return;
+      postDjango({ action: 'eliminar_utilizador', id }, () => { toast('Utilizador apagado.'); recarregarGestao('utilizadores'); });
+    }
+    function atualizarEstadoTicket(id, estado) {
+      postDjango({ action: 'atualizar_estado_ticket', id, estado }, () => { toast('Estado do ticket atualizado.'); recarregarGestao('tickets'); });
+    }
+    function atualizarEstadoPedido(id, estado) {
+      postDjango({ action: 'atualizar_estado_pedido', id, estado }, () => { toast('Estado do pedido atualizado.'); recarregarGestao('pedidos'); });
+    }
+    function eliminarDocumento(id) {
+      if (!confirm('Apagar este documento?')) return;
+      postDjango({ action: 'eliminar_documento', id }, () => { toast('Documento apagado.'); recarregarGestao('documentos'); });
+    }
+    function atualizarEstadoServico(id, estado) {
+      postDjango({ action: 'atualizar_estado_servico', id, estado }, () => { toast('Estado do serviço atualizado.'); recarregarGestao('servicos'); });
+    }
+    function marcarContactoLido(id) {
+      postDjango({ action: 'marcar_contacto_lido', id }, () => { toast('Contacto marcado como lido.'); recarregarGestao('contactos'); });
     }
 
     // ============================================================
@@ -531,6 +1132,26 @@
       .catch(() => toast('Erro de comunicação de rede.', 'error'));
     }
 
+    // Conclui o login (comum ao fluxo com e sem 2FA)
+    function finalizarLogin(user) {
+      state.user = user;
+      state.pending2fa = null;
+      toast(`Autenticado com perfil: ${user.perfil}`);
+      if (user.perfil === 'Cliente') {
+        state.clientSection = 'dashboard';
+        fetch('', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, body: JSON.stringify({ action: 'dados_cliente', id: user.id }) })
+          .then(r => r.json())
+          .then(d => { state.clienteData = d.dados || null; navigate('client-dashboard'); })
+          .catch(() => navigate('client-dashboard'));
+      } else {
+        state.adminSection = 'dashboard';
+        fetch('', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, body: JSON.stringify({ action: 'dados_gestao' }) })
+          .then(r => r.json())
+          .then(d => { state.gestaoData = d.dados || null; navigate('admin-dashboard'); })
+          .catch(() => navigate('admin-dashboard'));
+      }
+    }
+
     function handleLogin(e) {
       e.preventDefault();
       const payload = {
@@ -538,28 +1159,35 @@
         email: document.getElementById('l_email').value,
         password: document.getElementById('l_pass').value
       };
-
       fetch('', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token }}'
-        },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
         body: JSON.stringify(payload)
       })
       .then(res => res.json())
       .then(data => {
-        if(data.status === 'success') {
-          state.user = data.user;
-          toast(`Autenticado com perfil: ${state.user.perfil}`);
-          if(state.user.perfil === 'Cliente') {
-            navigate('client-dashboard');
-          } else {
-            navigate('admin-dashboard');
-          }
+        if (data.status === 'success') {
+          if (data.user.needs2fa) { state.pending2fa = data.user; render(); }
+          else finalizarLogin(data.user);
         } else {
           toast(data.message || 'Credenciais rejeitadas pelo sistema.', 'error');
         }
+      })
+      .catch(() => toast('Erro interno do servidor Django.', 'error'));
+    }
+
+    function handleVerify2fa(e) {
+      e.preventDefault();
+      const payload = { action: 'verify_2fa', id: state.pending2fa.id, word: document.getElementById('l_word').value };
+      fetch('', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') finalizarLogin(data.user);
+        else toast(data.message || 'Palavra de segurança incorreta.', 'error');
       })
       .catch(() => toast('Erro interno do servidor Django.', 'error'));
     }
@@ -568,9 +1196,13 @@
     function render() {
       const app = document.getElementById('app');
       const p = state.currentPage;
+      // Modo dashboard: sidebar escura em ecrã inteiro (esconde header/footer do site)
+      const emDashboard = (p === 'client-dashboard' || p === 'admin-dashboard') && state.user;
+      document.body.classList.toggle('dash-mode', !!emDashboard);
       if (p === 'home') app.innerHTML = renderHome();
       else if (p === 'about') app.innerHTML = renderAbout();
       else if (p === 'services') app.innerHTML = renderServices();
+      else if (p === 'nis2') app.innerHTML = renderNIS2();
       else if (p === 'news') app.innerHTML = renderNews();
       else if (p === 'contact') app.innerHTML = renderContact();
       else if (p === 'login') app.innerHTML = renderLogin();
