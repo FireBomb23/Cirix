@@ -6,11 +6,12 @@ const INCLUDE_USERS = [
 ];
 
 const isClient = (req) => req.user && req.user.role === 'client';
+const { scopeWhere, canAccessClient } = require('../utils/scope');
 
 // GET /service-requests
 exports.servicerequest_list = async (req, res) => {
   try {
-    const where = isClient(req) ? { client_id: req.user.id } : {};
+    const where = await scopeWhere(req);
     const pedidos = await ServiceRequest.findAll({ where, include: INCLUDE_USERS, order: [['id', 'ASC']] });
     res.json(pedidos);
   } catch (e) {
@@ -23,7 +24,7 @@ exports.servicerequest_detail = async (req, res) => {
   try {
     const pedido = await ServiceRequest.findByPk(req.params.id, { include: INCLUDE_USERS });
     if (!pedido) return res.status(404).json({ error: 'Pedido nao encontrado' });
-    if (isClient(req) && pedido.client_id !== req.user.id) {
+    if (!(await canAccessClient(req, pedido.client_id))) {
       return res.status(403).json({ error: 'Sem acesso a este pedido.' });
     }
     res.json(pedido);

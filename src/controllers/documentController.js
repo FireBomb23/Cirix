@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const { Document, User } = require('../models');
 const { recordAudit } = require('../utils/audit');
+const { managerClientIds, canAccessClient } = require('../utils/scope');
 
 const INCLUDE_USERS = [
   { model: User, as: 'cliente', attributes: ['id', 'name', 'email'] },
@@ -16,7 +17,12 @@ const clientWhere = (req) => ({
 // GET /documents
 exports.document_list = async (req, res) => {
   try {
-    const where = isClient(req) ? clientWhere(req) : {};
+    let where = {};
+    if (req.user.role === 'client') where = clientWhere(req);
+    else if (req.user.role === 'manager') {
+      const ids = await managerClientIds(req);
+      where = { [Op.or]: [{ client_id: ids }, { client_id: null }, { visibility: 'global' }] };
+    }
     const docs = await Document.findAll({ where, attributes: { exclude: ['file_data'] }, include: INCLUDE_USERS, order: [['id', 'ASC']] });
     res.json(docs);
   } catch (e) {
@@ -29,7 +35,7 @@ exports.document_detail = async (req, res) => {
   try {
     const doc = await Document.findByPk(req.params.id, { include: INCLUDE_USERS });
     if (!doc) return res.status(404).json({ error: 'Documento nao encontrado' });
-    if (isClient(req) && doc.client_id !== req.user.id && doc.client_id !== null && doc.visibility !== 'global') {
+    if (!(await canAccessClient(req, doc.client_id)) && doc.visibility !== 'global') {
       return res.status(403).json({ error: 'Sem acesso a este documento.' });
     }
     res.json(doc);

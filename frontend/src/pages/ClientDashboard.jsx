@@ -74,9 +74,21 @@ export default function ClientDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const fileInputRef = useRef(null);
 
-  // "A minha conta"
+  // "A minha conta" / ficha do cliente
   const [accName, setAccName] = useState(user?.name || '');
   const [accPassword, setAccPassword] = useState('');
+  const emptyFicha = { company: '', phone: '', so_name: '', so_email: '', so_phone: '', pc_name: '', pc_email: '', pc_phone: '' };
+  const [ficha, setFicha] = useState(emptyFicha);
+  useEffect(() => {
+    if (!user) return;
+    setAccName(user.name || '');
+    setFicha({
+      company: user.company || '', phone: user.phone || '',
+      so_name: user.so_name || '', so_email: user.so_email || '', so_phone: user.so_phone || '',
+      pc_name: user.pc_name || '', pc_email: user.pc_email || '', pc_phone: user.pc_phone || '',
+    });
+  }, [user]);
+  const setF = (k, v) => setFicha(f => ({ ...f, [k]: v }));
 
   const clientId = String(user?.id ?? '');
 
@@ -143,9 +155,27 @@ export default function ClientDashboard() {
   const [uploadedFiles, setUploadedFiles] = useState({});
   const [activeCat, setActiveCat] = useState('ativos');
 
-  // Avaliacao de risco / ativos / incidentes / pentests ainda nao tem tabelas na
-  // API partilhada (schema.sql), por isso estas seccoes mostram estado vazio.
-  const risco = null;
+  // Avaliação de risco CALCULADA a partir dos dados reais do cliente:
+  // incidentes reportados (nº, severidade e estado), ativos inventariados e
+  // documentos/evidências submetidos. Gera índice, controlos e não conformidades.
+  const risco = (() => {
+    const totalInc = incidents.length;
+    const criticos = incidents.filter(i => ['critica', 'alta'].includes(i.severity)).length;
+    const abertos = incidents.filter(i => ['aberto', 'em-analise'].includes(i.status)).length;
+    const nAtivos = assets.length, nDocs = docs.length;
+    let score = 92 - criticos * 12 - abertos * 6 - (nAtivos === 0 ? 12 : 0) - (nDocs === 0 ? 8 : 0);
+    score = Math.max(12, Math.min(100, score));
+    const level = score >= 80 ? 'Baixo' : score >= 60 ? 'Médio' : 'Alto';
+    const controls = [
+      { name: 'Inventário de Ativos', score: Math.min(100, nAtivos * 25) },
+      { name: 'Gestão de Incidentes', score: totalInc ? Math.max(20, 100 - abertos * 15) : 75 },
+      { name: 'Documentação de Evidências', score: Math.min(100, nDocs * 18) },
+      { name: 'Mitigação de Incidentes Críticos', score: Math.max(20, 100 - criticos * 20) },
+    ];
+    const findings = incidents.filter(i => !['resolvido', 'fechado'].includes(i.status))
+      .map(i => ({ id: i.id, category: i.category || 'Incidente', description: i.title, severity: i.severity, status: i.status }));
+    return { score, level, lastUpdated: new Date().toLocaleDateString('pt-PT'), controls, findings };
+  })();
   const ativos = [];
   const incidentes = [];
   const penTests = [];
@@ -286,10 +316,10 @@ export default function ClientDashboard() {
   const saveAccount = async (e) => {
     e.preventDefault();
     try {
-      const updated = await apiUpdateMe({ name: accName, password: accPassword || undefined });
+      const updated = await apiUpdateMe({ name: accName, password: accPassword || undefined, ...ficha });
       applyUser(updated);
       setAccPassword('');
-      showToast('Conta atualizada com sucesso!');
+      showToast('Ficha atualizada com sucesso!');
     } catch (err) {
       showToast('Erro ao atualizar conta: ' + (err.response?.data?.error || err.message), 'error');
     }
@@ -385,6 +415,8 @@ export default function ClientDashboard() {
 
   const sevBadge = (s) => { const m = { critical: 'badge-red', high: 'badge-orange', medium: 'badge-yellow', low: 'badge-gray' }; const l = { critical: 'Crítico', high: 'Alto', medium: 'Médio', low: 'Baixo' }; return <span className={`badge ${m[s] || 'badge-gray'}`}>{l[s] || s}</span>; };
   const critBadge = (c) => { const m = { 'crítico': 'badge-red', 'alto': 'badge-orange', 'médio': 'badge-yellow', 'baixo': 'badge-gray' }; return <span className={`badge ${m[c] || 'badge-gray'}`}>{c}</span>; };
+  const critPt = (c) => { const m = { critica: 'badge-red', alta: 'badge-orange', media: 'badge-yellow', baixa: 'badge-gray' }; const l = { critica: 'Crítica', alta: 'Alta', media: 'Média', baixa: 'Baixa' }; return <span className={`badge ${m[c] || 'badge-gray'}`}>{l[c] || c}</span>; };
+  const incStatusPt = (s) => { const m = { aberto: 'badge-red', 'em-analise': 'badge-yellow', resolvido: 'badge-green', fechado: 'badge-gray' }; const l = { aberto: 'Aberto', 'em-analise': 'Em Análise', resolvido: 'Resolvido', fechado: 'Fechado' }; return <span className={`badge ${m[s] || 'badge-gray'}`}>{l[s] || s}</span>; };
 
   return (
     <div className="dash-layout">
@@ -450,15 +482,46 @@ export default function ClientDashboard() {
           )}
 
           {page === 'conta' && (
-            <div className="table-wrap" style={{ maxWidth: '520px', padding: '1.5rem' }}>
-              <div className="table-header" style={{ padding: 0, border: 'none', marginBottom: '1rem' }}><h3>A Minha Conta</h3></div>
-              <form onSubmit={saveAccount}>
-                <div className="form-group"><label className="label">Nome</label><input className="input" value={accName} onChange={e => setAccName(e.target.value)} required /></div>
-                <div className="form-group"><label className="label">Email</label><input className="input" value={user?.email || ''} disabled /></div>
-                <div className="form-group"><label className="label">Nova password</label><input className="input" type="password" value={accPassword} onChange={e => setAccPassword(e.target.value)} placeholder="Deixa vazio para manter a atual" /></div>
-                <button className="btn btn-primary" type="submit">Guardar alterações</button>
-              </form>
-            </div>
+            <form onSubmit={saveAccount} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '820px' }}>
+              <div className="table-wrap" style={{ padding: '1.5rem' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Dados de Acesso</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                  <div className="form-group"><label className="label">Nome *</label><input className="input" value={accName} onChange={e => setAccName(e.target.value)} required /></div>
+                  <div className="form-group"><label className="label">Email</label><input className="input" value={user?.email || ''} disabled /></div>
+                  <div className="form-group"><label className="label">Nova password</label><input className="input" type="password" value={accPassword} onChange={e => setAccPassword(e.target.value)} placeholder="Deixe vazio para manter" /></div>
+                </div>
+              </div>
+
+              <div className="table-wrap" style={{ padding: '1.5rem' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Organização</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                  <div className="form-group"><label className="label">Empresa</label><input className="input" value={ficha.company} onChange={e => setF('company', e.target.value)} /></div>
+                  <div className="form-group"><label className="label">Telefone</label><input className="input" value={ficha.phone} onChange={e => setF('phone', e.target.value)} /></div>
+                </div>
+              </div>
+
+              <div className="table-wrap" style={{ padding: '1.5rem' }}>
+                <h3 style={{ marginBottom: '0.25rem' }}>Responsável de Segurança</h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--slate-500)', marginBottom: '1rem' }}>Ponto de contacto técnico para assuntos de cibersegurança (NIS2).</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                  <div className="form-group"><label className="label">Nome</label><input className="input" value={ficha.so_name} onChange={e => setF('so_name', e.target.value)} /></div>
+                  <div className="form-group"><label className="label">Email</label><input className="input" type="email" value={ficha.so_email} onChange={e => setF('so_email', e.target.value)} /></div>
+                  <div className="form-group"><label className="label">Telefone</label><input className="input" value={ficha.so_phone} onChange={e => setF('so_phone', e.target.value)} /></div>
+                </div>
+              </div>
+
+              <div className="table-wrap" style={{ padding: '1.5rem' }}>
+                <h3 style={{ marginBottom: '0.25rem' }}>Contacto Permanente</h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--slate-500)', marginBottom: '1rem' }}>Contacto disponível para notificação urgente de incidentes.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                  <div className="form-group"><label className="label">Nome</label><input className="input" value={ficha.pc_name} onChange={e => setF('pc_name', e.target.value)} /></div>
+                  <div className="form-group"><label className="label">Email</label><input className="input" type="email" value={ficha.pc_email} onChange={e => setF('pc_email', e.target.value)} /></div>
+                  <div className="form-group"><label className="label">Telefone</label><input className="input" value={ficha.pc_phone} onChange={e => setF('pc_phone', e.target.value)} /></div>
+                </div>
+              </div>
+
+              <div><button className="btn btn-primary" type="submit">Guardar ficha</button></div>
+            </form>
           )}
 
           {page === 'mensagens' && (
@@ -594,7 +657,7 @@ export default function ClientDashboard() {
                   <div className="table-scroll">
                     <table>
                       <thead><tr><th>Categoria</th><th>Descrição</th><th>Severidade</th><th>Estado</th></tr></thead>
-                      <tbody>{risco.findings.map(f => <tr key={f.id}><td style={{ fontWeight: 500 }}>{f.category}</td><td style={{ fontSize: '0.875rem', color: 'var(--slate-600)' }}>{f.description}</td><td>{sevBadge(f.severity)}</td><td>{statusBadge(f.status)}</td></tr>)}</tbody>
+                      <tbody>{risco.findings.map(f => <tr key={f.id}><td style={{ fontWeight: 500 }}>{f.category}</td><td style={{ fontSize: '0.875rem', color: 'var(--slate-600)' }}>{f.description}</td><td>{critPt(f.severity)}</td><td>{incStatusPt(f.status)}</td></tr>)}</tbody>
                     </table>
                   </div>
                 </div>
@@ -635,7 +698,7 @@ export default function ClientDashboard() {
                 {assets.length > 0 ? (
                   <div className="table-scroll"><table>
                     <thead><tr><th>Nome</th><th>Tipo</th><th>Qtd.</th><th>Localização</th><th>Criticidade</th><th>Ação</th></tr></thead>
-                    <tbody>{assets.map(a => <tr key={a.id}><td style={{ fontWeight: 500 }}>{a.name}</td><td><span className="badge badge-blue">{a.assetType}</span></td><td>{a.quantity}</td><td style={{ color: 'var(--slate-500)' }}>{a.location}</td><td><span className="badge badge-gray">{a.criticality}</span></td><td><button className="btn btn-sm btn-danger" onClick={() => delAsset(a.id)}>🗑</button></td></tr>)}</tbody>
+                    <tbody>{assets.map(a => <tr key={a.id}><td style={{ fontWeight: 500 }}>{a.name}</td><td><span className="badge badge-blue">{a.assetType}</span></td><td>{a.quantity}</td><td style={{ color: 'var(--slate-500)' }}>{a.location}</td><td>{critPt(a.criticality)}</td><td><button className="btn btn-sm btn-danger" onClick={() => delAsset(a.id)}>🗑</button></td></tr>)}</tbody>
                   </table></div>
                 ) : <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--slate-400)' }}>Ainda não registou ativos.</div>}
               </div>
@@ -665,7 +728,7 @@ export default function ClientDashboard() {
                 {incidents.length > 0 ? incidents.map(i => (
                   <div key={i.id} className="table-wrap" style={{ padding: '1.25rem 1.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                      <div><div style={{ fontWeight: 600 }}>{i.title}</div><div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}><span className="badge badge-blue">{i.category}</span><span className="badge badge-gray">{i.severity}</span><span className="badge badge-gray">{i.status}</span></div></div>
+                      <div><div style={{ fontWeight: 600 }}>{i.title}</div><div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}><span className="badge badge-blue">{i.category}</span>{critPt(i.severity)}{incStatusPt(i.status)}</div></div>
                       <span style={{ fontSize: '0.8rem', color: 'var(--slate-400)' }}>{i.date}</span>
                     </div>
                     {i.description && <div style={{ fontSize: '0.875rem', color: 'var(--slate-600)' }}>{i.description}</div>}
@@ -686,21 +749,19 @@ export default function ClientDashboard() {
               </div>
 
               {activeCat === 'ativos' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  <div className="table-wrap">
-                    <div className="table-header"><h3>Ativos Tecnológicos Registados ({ativos.length})</h3><button className="btn btn-primary btn-sm" onClick={() => triggerFileUpload('ativos')}>+ Carregar</button></div>
-                    {ativos.length > 0 ? (
-                      <div className="table-scroll">
-                        <table>
-                          <thead><tr><th>Nome</th><th>Tipo</th><th>IP</th><th>SO</th><th>Criticidade</th><th>Estado</th></tr></thead>
-                          <tbody>{ativos.map(a => <tr key={a.id}><td style={{ fontWeight: 500 }}>{a.nome}</td><td><span className="badge badge-blue">{a.tipo}</span></td><td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{a.ip}</td><td style={{ color: 'var(--slate-500)' }}>{a.so}</td><td>{critBadge(a.criticidade)}</td><td><span className={`badge ${a.estado === 'ativo' ? 'badge-green' : 'badge-gray'}`}>{a.estado}</span></td></tr>)}</tbody>
-                        </table>
-                      </div>
-                    ) : null}
+                <div>
+                  <div style={{ border: '2px dashed var(--slate-300)', borderRadius: '10px', padding: '3rem', textAlign: 'center', cursor: 'pointer', background: 'var(--slate-50)', marginBottom: '1rem' }}
+                    onClick={() => triggerFileUpload('ativos')}
+                    onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--yellow)'; }}
+                    onDragLeave={e => { e.currentTarget.style.borderColor = 'var(--slate-300)'; }}
+                    onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--slate-300)'; uploadFiles(Array.from(e.dataTransfer.files), 'ativos'); }}>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🖥️</div>
+                    <div style={{ fontWeight: 700, marginBottom: '0.25rem' }}>Submeter evidência de Ativos Tecnológicos</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--slate-500)' }}>Arraste ficheiros ou clique · para gerir a lista use "Ativos Tecnológicos" no menu</div>
                   </div>
                   {(uploadedFiles['ativos'] || []).length > 0 && (
                     <div className="table-wrap">
-                      <div className="table-header"><h3>Ficheiros Carregados</h3></div>
+                      <div className="table-header"><h3>Ficheiros Carregados ({(uploadedFiles['ativos'] || []).length})</h3></div>
                       <div className="table-scroll"><table><thead><tr><th>Ficheiro</th><th>Tamanho</th><th>Data</th></tr></thead><tbody>{(uploadedFiles['ativos'] || []).map((f, i) => <tr key={i}><td>{f.name}</td><td>{f.size}</td><td>{f.date}</td></tr>)}</tbody></table></div>
                     </div>
                   )}
@@ -708,19 +769,22 @@ export default function ClientDashboard() {
               )}
 
               {activeCat === 'incidentes' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button className="btn btn-primary btn-sm" onClick={() => triggerFileUpload('incidentes')}>+ Carregar Relatório</button></div>
-                  {incidentes.map(i => (
-                    <div key={i.id} className="table-wrap" style={{ padding: '1.25rem 1.5rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <div style={{ fontWeight: 600 }}>{i.titulo}</div>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>{sevBadge(i.severidade)}{statusBadge(i.estado)}</div>
-                      </div>
-                      <div style={{ fontSize: '0.875rem', color: 'var(--slate-600)', marginBottom: '0.375rem' }}>{i.descricao}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--slate-500)' }}>{i.data} • <span className="badge badge-blue">{i.tipo}</span></div>
+                <div>
+                  <div style={{ border: '2px dashed var(--slate-300)', borderRadius: '10px', padding: '3rem', textAlign: 'center', cursor: 'pointer', background: 'var(--slate-50)', marginBottom: '1rem' }}
+                    onClick={() => triggerFileUpload('incidentes')}
+                    onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--yellow)'; }}
+                    onDragLeave={e => { e.currentTarget.style.borderColor = 'var(--slate-300)'; }}
+                    onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--slate-300)'; uploadFiles(Array.from(e.dataTransfer.files), 'incidentes'); }}>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>⚠️</div>
+                    <div style={{ fontWeight: 700, marginBottom: '0.25rem' }}>Submeter relatório / evidência de Incidente</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--slate-500)' }}>Arraste ficheiros ou clique · para reportar formalmente use "Report de Incidentes" no menu</div>
+                  </div>
+                  {(uploadedFiles['incidentes'] || []).length > 0 && (
+                    <div className="table-wrap">
+                      <div className="table-header"><h3>Ficheiros Carregados ({(uploadedFiles['incidentes'] || []).length})</h3></div>
+                      <div className="table-scroll"><table><thead><tr><th>Ficheiro</th><th>Tamanho</th><th>Data</th></tr></thead><tbody>{(uploadedFiles['incidentes'] || []).map((f, i) => <tr key={i}><td>{f.name}</td><td>{f.size}</td><td>{f.date}</td></tr>)}</tbody></table></div>
                     </div>
-                  ))}
-                  {incidentes.length === 0 && <div className="table-wrap" style={{ padding: '2rem', textAlign: 'center', color: 'var(--slate-400)' }}>Nenhum incidente reportado.</div>}
+                  )}
                 </div>
               )}
 
@@ -747,23 +811,22 @@ export default function ClientDashboard() {
               )}
 
               {activeCat === 'pentests' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button className="btn btn-primary btn-sm" onClick={() => triggerFileUpload('pentests')}>+ Carregar Relatório</button></div>
-                  {penTests.map(p => (
-                    <div key={p.id} className="table-wrap" style={{ padding: '1.25rem 1.5rem' }}>
-                      <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>{p.titulo}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--slate-500)', marginBottom: '0.75rem' }}>{p.data} • {p.tipo} • {p.consultor}</div>
-                      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                        {[['Crítico', p.critico, '#ef4444', '#fef2f2'], ['Alto', p.alto, '#f97316', '#fff7ed'], ['Médio', p.medio, '#eab308', '#fefce8'], ['Baixo', p.baixo, 'var(--slate-500)', 'var(--slate-50)']].map(([label, count, color, bg]) => (
-                          <div key={label} style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: bg, textAlign: 'center', minWidth: '80px' }}>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 800, color }}>{count}</div>
-                            <div style={{ fontSize: '0.7rem', color }}>{label}</div>
-                          </div>
-                        ))}
-                      </div>
+                <div>
+                  <div style={{ border: '2px dashed var(--slate-300)', borderRadius: '10px', padding: '3rem', textAlign: 'center', cursor: 'pointer', background: 'var(--slate-50)', marginBottom: '1rem' }}
+                    onClick={() => triggerFileUpload('pentests')}
+                    onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--yellow)'; }}
+                    onDragLeave={e => { e.currentTarget.style.borderColor = 'var(--slate-300)'; }}
+                    onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--slate-300)'; uploadFiles(Array.from(e.dataTransfer.files), 'pentests'); }}>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🔍</div>
+                    <div style={{ fontWeight: 700, marginBottom: '0.25rem' }}>Submeter relatório de PenTest</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--slate-500)' }}>Arraste ficheiros ou clique para selecionar</div>
+                  </div>
+                  {(uploadedFiles['pentests'] || []).length > 0 && (
+                    <div className="table-wrap">
+                      <div className="table-header"><h3>Ficheiros Carregados ({(uploadedFiles['pentests'] || []).length})</h3></div>
+                      <div className="table-scroll"><table><thead><tr><th>Ficheiro</th><th>Tamanho</th><th>Data</th></tr></thead><tbody>{(uploadedFiles['pentests'] || []).map((f, i) => <tr key={i}><td>{f.name}</td><td>{f.size}</td><td>{f.date}</td></tr>)}</tbody></table></div>
                     </div>
-                  ))}
-                  {penTests.length === 0 && <div className="table-wrap" style={{ padding: '2rem', textAlign: 'center', color: 'var(--slate-400)' }}>Nenhum pen test registado.</div>}
+                  )}
                 </div>
               )}
 

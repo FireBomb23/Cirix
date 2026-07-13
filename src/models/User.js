@@ -23,6 +23,7 @@ const User = sequelize.define('User', {
   twofa_word2: { type: DataTypes.STRING },
   twofa_word3: { type: DataTypes.STRING },
   active: { type: DataTypes.BOOLEAN, defaultValue: true },
+  manager_id: { type: DataTypes.INTEGER }, // gestor responsavel por este cliente (1 gestor -> N clientes)
 }, {
   tableName: 'users',
   timestamps: true,
