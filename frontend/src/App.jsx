@@ -3,6 +3,7 @@ import Layout from './components/Layout.jsx';
 import Home from './pages/Home.jsx';
 import About from './pages/About.jsx';
 import Services from './pages/Services.jsx';
+import NIS2 from './pages/NIS2.jsx';
 import News from './pages/News.jsx';
 import Contact from './pages/Contact.jsx';
 import Login from './pages/Login.jsx';
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/sobre" element={<About />} />
         <Route path="/servicos" element={<Services />} />
+        <Route path="/nis2" element={<NIS2 />} />
         <Route path="/noticias" element={<News />} />
         <Route path="/contacto" element={<Contact />} />
       </Route>

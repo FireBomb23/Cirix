@@ -6,6 +6,7 @@ const NAV_PUBLIC = [
   { path: '/', label: 'Início' },
   { path: '/sobre', label: 'Sobre Nós' },
   { path: '/servicos', label: 'Serviços' },
+  { path: '/nis2', label: 'NIS2' },
   { path: '/noticias', label: 'Notícias' },
   { path: '/contacto', label: 'Contacto' },
 ];
